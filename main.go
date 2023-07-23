@@ -55,13 +55,7 @@ func main() {
 			return fmt.Errorf("no action with the name '%s'", options.Action)
 		}
 
-		// Yoshi/Options can only handle strings
-		vars := make(map[string]any)
-		for k, v := range options.Vars {
-			vars[k] = v
-		}
-
-		return action.Run(vars)
+		return action.Run(options.Vars)
 	})
 }
 
@@ -90,6 +84,7 @@ func loadScope(runfile *runfile.Runfile, path ...string) (*Scope, error) {
 			Scope:    scope,
 			Name:     strings.Join(append(path, name), "."),
 			Skip:     newCommandContext(action.Skip),
+			Vars:     newVarContexts(action.Vars),
 			Commands: newCommandContexts(action.Commands),
 		}
 	}

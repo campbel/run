@@ -2,6 +2,10 @@ imports:
   go: github.com/campbel/run/actions/golang
 
 actions:
+  install:
+    desc: "Install Golang"
+    cmds:
+    - action: go.install_pkg
   run:
     desc: "Run a go program"
     cmds:
