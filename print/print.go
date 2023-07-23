@@ -6,20 +6,23 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var infoStyle = lipgloss.NewStyle().
-	Bold(true).
-	Foreground(lipgloss.Color("#FAFAFA")).
-	Background(lipgloss.Color("#7D56F4"))
-
-var noticeStyle = lipgloss.NewStyle().
-	Bold(true).
-	Foreground(lipgloss.Color("#FFD580")).
-	Background(lipgloss.Color("#7D56F4"))
-
-func Info(format string, a ...any) {
-	fmt.Println(infoStyle.Render(fmt.Sprintf(format, a...)))
+var colors = []string{
+	"#89d6fb",
+	"#02a9f7",
+	"#02577a",
+	"#6522a3",
+	"#52096a",
 }
 
-func Notice(format string, a ...any) {
-	fmt.Println(noticeStyle.Foreground(lipgloss.Color("#FFD580")).Render(fmt.Sprintf(format, a...)))
+var index = 0
+
+func StartInfoContext() func(string, ...any) {
+	style := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(lipgloss.Color("#FAFAFA")).
+		Background(lipgloss.Color(colors[index]))
+	index = (index + 1) % len(colors)
+	return func(format string, a ...any) {
+		fmt.Println(style.Render(fmt.Sprintf(format, a...)))
+	}
 }

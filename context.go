@@ -58,6 +58,8 @@ func newCommandContext(command runfile.Command) *CommandContext {
 
 func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 
+	info := print.StartInfoContext()
+
 	// Variables cascade
 	// The defaults are input to args
 	// The defaults and args are input to vars
@@ -91,7 +93,7 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 	input["vars"] = vars
 	input["VARS"] = vars
 
-	print.Info("running action %s", ctx.Name)
+	info("running action %s", ctx.Name)
 	if ctx.Skip.Shell != "" {
 		subbedCommand, err := varSub(input, ctx.Skip.Shell)
 		if err != nil {
@@ -99,7 +101,7 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 		}
 		command := exec.Command("sh", "-c", subbedCommand)
 		if err := command.Run(); err == nil {
-			print.Notice("skipping action %s", ctx.Name)
+			info("  - skipping action %s", ctx.Name)
 			return nil
 		}
 	}
@@ -132,6 +134,7 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 			continue
 		}
 	}
+	info("finished action %s", ctx.Name)
 	return nil
 }
 
