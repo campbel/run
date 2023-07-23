@@ -2,8 +2,6 @@ actions:
   install:
     desc: "Install package with brew"
     skip:
-      shell: |
-        brew list {{.PACKAGE}}
+      shell: brew list {{.PACKAGE}}
     cmds:
-      - shell: |
-          brew install {{.PACKAGE}}
+      - shell: brew install {{.PACKAGE}}

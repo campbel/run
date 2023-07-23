@@ -5,12 +5,16 @@ imports:
 actions:
   install_pkg:
     desc: "Install Golang from pkg"
+    skip:
+      shell: go version
     cmds:
       - action: pkg.install
         args:
           URL: https://go.dev/dl/go1.20.6.darwin-{{ .ARCH }}.pkg
-  install:
+  install_brew:
     desc: "Install Golang with brew"
+    skip:
+      shell: go version
     cmds:
       - action: brew.install
         args: { PACKAGE: go }
