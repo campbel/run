@@ -19,16 +19,16 @@ workflows:
   install:
     desc: "Install the application"
     actions:
-      - go.install
+      - action: go.install
   run:
     desc: "Run the application"
     actions: 
-      - run
+      - action: run
   test:
     desc: "Run the tests"
     actions:
-      - test
+      - action: test
   build:
     desc: "Build the application"
     actions:
-      - build
+      - action: build

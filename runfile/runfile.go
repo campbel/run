@@ -12,11 +12,17 @@ type Action struct {
 }
 
 type Command struct {
-	Shell  string `yaml:"shell"`
-	Action string `yaml:"action"`
+	Shell  string         `yaml:"shell"`
+	Action string         `yaml:"action"`
+	Args   map[string]any `yaml:"args"`
 }
 
 type Workflow struct {
-	Description string   `yaml:"desc"`
-	Actions     []string `yaml:"actions"`
+	Description string           `yaml:"desc"`
+	Actions     []WorkflowAction `yaml:"actions"`
+}
+
+type WorkflowAction struct {
+	Action string         `yaml:"action"`
+	Args   map[string]any `yaml:"args"`
 }

@@ -79,16 +79,16 @@ func listWorkflows(workflows map[string]runfile.Workflow) {
 }
 
 func runWorkflow(workflow runfile.Workflow, scope *Scope) error {
-	for _, actionName := range workflow.Actions {
-		if action, ok := scope.Actions[actionName]; ok {
-			if err := action.Run(); err != nil {
-				return errors.Wrapf(err, "error on action run %s", actionName)
+	for _, command := range workflow.Actions {
+		if action, ok := scope.Actions[command.Action]; ok {
+			if err := action.Run(command.Args); err != nil {
+				return errors.Wrapf(err, "error on action run %s", command.Action)
 			}
 			continue
 		}
-		if action, ok := scope.Imports[actionName]; ok {
-			if err := action.Run(); err != nil {
-				return errors.Wrapf(err, "error on action run %s", actionName)
+		if action, ok := scope.Imports[command.Action]; ok {
+			if err := action.Run(command.Args); err != nil {
+				return errors.Wrapf(err, "error on action run %s", command.Action)
 			}
 			continue
 		}
