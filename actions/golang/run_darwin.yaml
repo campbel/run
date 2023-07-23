@@ -1,7 +1,14 @@
 imports:
   brew: github.com/campbel/run/actions/brew
+  pkg: github.com/campbel/run/actions/darwin_pkg
 
 actions:
+  install_pkg:
+    desc: "Install Golang from pkg"
+    cmds:
+      - action: pkg.install
+        args:
+          URL: https://dl.google.com/go/go1.11.2.darwin-amd64.pkg
   install:
     desc: "Install Golang with brew"
     cmds:

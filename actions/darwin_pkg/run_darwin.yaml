@@ -1,0 +1,12 @@
+actions:
+  install:
+    desc: "Install Mac OS X package"
+    vars:
+      PKG_PATH:
+        shell: echo "$(mktemp -d)/foo.pkg"
+    cmds:
+      - shell: |
+          echo "Downloading {{ .ARGS.URL }} to {{ .VARS.PKG_PATH }}"
+# curl -L -o {{ .VARS.PKG_PATH }} {{ .ARGS.URL }}
+# sudo installer -pkg {{ .PKG_PATH }} -target /
+# rm {{ .PKG_PATH }}
