@@ -6,6 +6,7 @@ actions:
         shell: echo "$(mktemp -d)/foo.pkg"
     cmds:
       - shell: |
+          set -e
           echo "Downloading {{ .ARGS.URL }} to {{ .VARS.PKG_PATH }}"
           curl -L -o {{ .VARS.PKG_PATH }} {{ .ARGS.URL }}
           echo "Installing, this will require sudo"
