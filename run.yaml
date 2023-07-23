@@ -1,5 +1,5 @@
 imports:
-  go: actions/golang
+  go: github.com/campbel/run/actions/golang
 
 actions:
   run:
