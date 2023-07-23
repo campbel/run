@@ -137,19 +137,31 @@ func fetchRunfile(imp string) (*runfile.Runfile, error) {
 }
 
 func loadRunfile(path string) (*runfile.Runfile, error) {
+	// If the path has no extension, we assume its a directory and load both
+	// the common file and the os specific file
 	if filepath.Ext(path) == "" {
-		osfile := filepath.Join(path, "run_"+runtime.GOOS+".yaml")
-		commonFile := filepath.Join(path, "run.yaml")
-		if _, err := os.Stat(osfile); err == nil {
-			path = osfile
-		} else if _, err := os.Stat(commonFile); err == nil {
-			path = commonFile
-		} else {
-			return nil, fmt.Errorf("no runfile found in %s", path)
+		sharedRunfile := runfile.NewRunfile()
+		files := []string{"run.yaml", "run_" + runtime.GOOS + ".yaml"}
+		for _, file := range files {
+			filepath := filepath.Join(path, file)
+			if _, err := os.Stat(filepath); err == nil {
+				runfile, err := readRunfile(filepath)
+				if err != nil {
+					return nil, errors.Wrapf(err, "error on read %s", filepath)
+				}
+				if err := sharedRunfile.Merge(runfile); err != nil {
+					return nil, errors.Wrapf(err, "error on merge %s", filepath)
+				}
+			}
 		}
+		return sharedRunfile, nil
 	}
 
-	data, err := os.ReadFile(path)
+	return readRunfile(path)
+}
+
+func readRunfile(filepath string) (*runfile.Runfile, error) {
+	data, err := os.ReadFile(filepath)
 	if err != nil {
 		return nil, errors.Wrap(err, "error on read")
 	}

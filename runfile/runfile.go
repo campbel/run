@@ -6,6 +6,27 @@ type Runfile struct {
 	Workflows map[string]Workflow `yaml:"workflows"`
 }
 
+func NewRunfile() *Runfile {
+	return &Runfile{
+		Imports:   make(map[string]string),
+		Actions:   make(map[string]Action),
+		Workflows: make(map[string]Workflow),
+	}
+}
+
+func (r *Runfile) Merge(a *Runfile) error {
+	for name, action := range a.Actions {
+		r.Actions[name] = action
+	}
+	for name, workflow := range a.Workflows {
+		r.Workflows[name] = workflow
+	}
+	for name, path := range a.Imports {
+		r.Imports[name] = path
+	}
+	return nil
+}
+
 type Action struct {
 	Description string    `yaml:"desc"`
 	Skip        Command   `yaml:"skip"`
