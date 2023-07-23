@@ -6,6 +6,12 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+func Notice(format string, a ...any) {
+	fmt.Println(lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#89d6fb")).
+		Render(fmt.Sprintf(format, a...)))
+}
+
 var colors = []string{
 	"#89d6fb",
 	"#02a9f7",

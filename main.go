@@ -83,7 +83,7 @@ func loadScope(runfile *runfile.Runfile, path ...string) (*Scope, error) {
 		scope.Actions[name] = &ActionContext{
 			Scope:    scope,
 			Name:     strings.Join(append(path, name), "."),
-			Skip:     newCommandContext(action.Skip),
+			Skip:     newSkipContext(action.Skip),
 			Vars:     newVarContexts(action.Vars),
 			Commands: newCommandContexts(action.Commands),
 		}

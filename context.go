@@ -29,9 +29,21 @@ func NewScope() *Scope {
 type ActionContext struct {
 	Scope    *Scope                 `json:"-" yaml:"-"`
 	Name     string                 `json:"name" yaml:"name"`
-	Skip     *CommandContext        `json:"skip,omitempty" yaml:"skip,omitempty"`
+	Skip     *SkipContext           `json:"skip,omitempty" yaml:"skip,omitempty"`
 	Vars     map[string]*VarContext `json:"vars,omitempty" yaml:"vars,omitempty"`
 	Commands []*CommandContext      `json:"commands,omitempty" yaml:"commands,omitempty"`
+}
+
+type SkipContext struct {
+	Shell   string `json:"shell,omitempty" yaml:"shell,omitempty"`
+	Message string `json:"message,omitempty" yaml:"message,omitempty"`
+}
+
+func newSkipContext(skip runfile.Skip) *SkipContext {
+	return &SkipContext{
+		Shell:   skip.Shell,
+		Message: skip.Message,
+	}
 }
 
 type CommandContext struct {
@@ -94,6 +106,7 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 	input["VARS"] = vars
 
 	info("running action %s", ctx.Name)
+	defer info("finished action %s", ctx.Name)
 	if ctx.Skip.Shell != "" {
 		subbedCommand, err := varSub(input, ctx.Skip.Shell)
 		if err != nil {
@@ -101,7 +114,7 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 		}
 		command := exec.Command("sh", "-c", subbedCommand)
 		if err := command.Run(); err == nil {
-			info("  - skipping action %s", ctx.Name)
+			print.Notice(" - skipping - %s", ctx.Skip.Message)
 			return nil
 		}
 	}
@@ -134,7 +147,6 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 			continue
 		}
 	}
-	info("finished action %s", ctx.Name)
 	return nil
 }
 
