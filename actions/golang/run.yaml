@@ -1,8 +1,13 @@
-imports:
-  go_installer: github.com/campbel/run/actions/golang_installer
-
 actions:
-  install:
-    desc: "Install go"
+  run:
+    desc: "Run a go program"
     cmds:
-      - action: go_installer.install
+    - shell: go run .
+  test:
+    desc: "Run all go tests"
+    cmds:
+    - shell: go test ./... -cover
+  build:
+    desc: "Build all go apps"
+    cmds:
+    - shell: go build -o bin/ ./...

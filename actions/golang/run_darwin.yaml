@@ -3,7 +3,7 @@ imports:
 
 actions:
   install:
-    desc: "Install brew"
+    desc: "Install Golang with brew"
     cmds:
       - action: brew.install
         args: { PACKAGE: go }
