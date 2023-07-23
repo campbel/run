@@ -10,5 +10,5 @@ actions:
           echo "Downloading {{ .ARGS.URL }} to {{ .VARS.PKG_PATH }}"
           curl -L -o {{ .VARS.PKG_PATH }} "{{ .ARGS.URL }}"
           echo "Installing, this will require sudo"
-          sudo installer -pkg {{ .PKG_PATH }} -target /
+          sudo installer -pkg {{ .VARS.PKG_PATH }} -target /
           rm {{ .PKG_PATH }}
