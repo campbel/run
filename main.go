@@ -30,14 +30,9 @@ func main() {
 		}
 
 		// First thing, get all imports
-		if err := fetchImports(runfile.Imports); err != nil {
-			return errors.Wrap(err, "failed to fetch imports")
-		}
-
-		// Now load all imports
-		imports, err := loadImports(runfile.Imports)
+		imports, err := fetchImports(runfile.Imports)
 		if err != nil {
-			return errors.Wrap(err, "failed to load imports")
+			return errors.Wrap(err, "failed to fetch imports")
 		}
 		for namespace, actionfile := range imports {
 			for name, action := range actionfile.Actions {
@@ -104,34 +99,32 @@ var pwd = (func() string {
 	return wd
 })()
 
-func fetchImports(imports map[string]string) error {
+func fetchImports(imports map[string]string) (map[string]*runfile.Actionfile, error) {
+	var merged = make(map[string]*runfile.Actionfile)
 	for name, target := range imports {
-		if err := fetchImport(name, target); err != nil {
-			return errors.Wrapf(err, "error on fetch import %s", target)
-		}
-	}
-	return nil
-}
-
-func fetchImport(name, target string) error {
-	return (&getter.Client{
-		Src:  target,
-		Dst:  filepath.Join(".run", "imports", name),
-		Pwd:  pwd,
-		Mode: getter.ClientModeAny,
-	}).Get()
-}
-
-func loadImports(imports map[string]string) (map[string]*runfile.Actionfile, error) {
-	result := map[string]*runfile.Actionfile{}
-	for name := range imports {
-		actionfile, err := loadActionFile(filepath.Join(".run", "imports", name, "run.yaml"))
+		err := (&getter.Client{
+			Src:  target,
+			Dst:  filepath.Join(".run", "imports", name),
+			Pwd:  pwd,
+			Mode: getter.ClientModeAny,
+		}).Get()
 		if err != nil {
-			return nil, errors.Wrapf(err, "error on load import %s", name)
+			return nil, errors.Wrapf(err, "error on get %s", target)
 		}
-		result[name] = actionfile
+		actionFile, err := loadActionFile(filepath.Join(".run", "imports", name, "run.yaml"))
+		if err != nil {
+			return nil, errors.Wrapf(err, "error on load action file %s", target)
+		}
+		merged[name] = actionFile
+		results, err := fetchImports(actionFile.Imports)
+		if err != nil {
+			return nil, errors.Wrapf(err, "error on fetch imports %s", target)
+		}
+		for name, actionfile := range results {
+			merged[name] = actionfile
+		}
 	}
-	return result, nil
+	return merged, nil
 }
 
 func listWorkflows(workflows map[string]runfile.Workflow) {
