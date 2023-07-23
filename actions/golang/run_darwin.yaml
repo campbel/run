@@ -7,6 +7,7 @@ actions:
     desc: "Install Golang from pkg"
     skip:
       shell: go version
+      msg: "Golang is already installed"
     cmds:
       - action: pkg.install
         args:
@@ -15,6 +16,7 @@ actions:
     desc: "Install Golang with brew"
     skip:
       shell: go version
+      msg: "Golang is already installed"
     cmds:
       - action: brew.install
         args: { PACKAGE: go }
