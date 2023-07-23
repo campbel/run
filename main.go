@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"text/tabwriter"
 
 	"github.com/campbel/run/runfile"
@@ -123,16 +124,28 @@ func loadScope(runfile *runfile.Runfile) (*Scope, error) {
 }
 
 func fetchRunfile(imp string) (*runfile.Runfile, error) {
-	dst := path(imp)
+	dst := filepath.Join(pwd, ".run", "imports", imp)
 	if _, err := os.Stat(dst); err != nil {
 		if err := fetch(imp, dst); err != nil {
 			return nil, errors.Wrapf(err, "error on fetch %s", imp)
 		}
 	}
-	return loadRunfile(dst + "/run.yaml")
+	return loadRunfile(dst)
 }
 
 func loadRunfile(path string) (*runfile.Runfile, error) {
+	if filepath.Ext(path) == "" {
+		osfile := filepath.Join(path, "run_"+runtime.GOOS+".yaml")
+		commonFile := filepath.Join(path, "run.yaml")
+		if _, err := os.Stat(osfile); err == nil {
+			path = osfile
+		} else if _, err := os.Stat(commonFile); err == nil {
+			path = commonFile
+		} else {
+			return nil, fmt.Errorf("no runfile found in %s", path)
+		}
+	}
+
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, errors.Wrap(err, "error on read")
@@ -144,10 +157,6 @@ func loadRunfile(path string) (*runfile.Runfile, error) {
 	}
 
 	return &runfile, nil
-}
-
-func path(imp string) string {
-	return filepath.Join(pwd, ".run", "imports", imp)
 }
 
 func fetch(src, dst string) error {
