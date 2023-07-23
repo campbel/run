@@ -7,8 +7,13 @@ type Runfile struct {
 }
 
 type Action struct {
-	Description string   `yaml:"desc"`
-	Commands    []string `yaml:"cmds"`
+	Description string    `yaml:"desc"`
+	Commands    []Command `yaml:"cmds"`
+}
+
+type Command struct {
+	Shell  string `yaml:"shell"`
+	Action string `yaml:"action"`
 }
 
 type Workflow struct {

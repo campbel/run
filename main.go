@@ -175,10 +175,15 @@ func runAction(action runfile.Action) error {
 	return nil
 }
 
-func runCommand(cmd string) error {
-	parts := strings.Split(cmd, " ")
-	command := exec.Command(parts[0], parts[1:]...)
-	command.Stdout = os.Stdout
-	command.Stderr = os.Stderr
-	return command.Run()
+func runCommand(cmd runfile.Command) error {
+	if cmd.Shell != "" {
+		parts := strings.Split(cmd.Shell, " ")
+		command := exec.Command(parts[0], parts[1:]...)
+		command.Stdout = os.Stdout
+		command.Stderr = os.Stderr
+		return command.Run()
+	} else if cmd.Action != "" {
+		// return runActionCommand(cmd.Action)
+	}
+	return nil
 }

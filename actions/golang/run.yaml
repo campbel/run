@@ -5,4 +5,5 @@ actions:
   install:
     desc: "Install go"
     cmds:
-      - brew install go
+      - action: brew
+      - shell: brew install go

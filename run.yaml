@@ -5,15 +5,15 @@ actions:
   run:
     desc: "Run a go program"
     cmds:
-    - go run .
+    - shell: go run .
   test:
     desc: "Run all go tests"
     cmds:
-    - go test ./... -cover
+    - shell: go test ./... -cover
   build:
     desc: "Build all go apps"
     cmds:
-    - go build -o bin/ ./...
+    - shell: go build -o bin/ ./...
 
 workflows:
   run:
