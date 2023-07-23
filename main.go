@@ -16,10 +16,11 @@ import (
 )
 
 type Options struct {
-	Workflow string `yoshi:"WORKFLOW;The workflow to run;default"`
-	Runfile  string `yoshi:"--runfile,-f;The runfile to use;run.yaml"`
-	List     bool   `yoshi:"--list,-l;List workflows"`
-	Dump     bool   `yoshi:"--dump,-d;Dump the runfile"`
+	Action  string            `yoshi:"ACTION;The action to run;default"`
+	Vars    map[string]string `yoshi:"--vars,-v;The vars file to use"`
+	Runfile string            `yoshi:"--runfile,-f;The runfile to use;run.yaml"`
+	List    bool              `yoshi:"--list,-l;List actions"`
+	Dump    bool              `yoshi:"--dump,-d;Dump the runfile"`
 }
 
 func main() {
@@ -36,7 +37,7 @@ func main() {
 		}
 
 		if options.List {
-			listWorkflows(runfile.Workflows)
+			listActions(runfile.Actions)
 			return nil
 		}
 
@@ -49,16 +50,18 @@ func main() {
 			return nil
 		}
 
-		workflow, ok := runfile.Workflows[options.Workflow]
+		action, ok := rootScope.Actions[options.Action]
 		if !ok {
-			return fmt.Errorf("no workflow with the name '%s'", options.Workflow)
+			return fmt.Errorf("no action with the name '%s'", options.Action)
 		}
 
-		if err := runWorkflow(workflow, rootScope); err != nil {
-			return errors.Wrapf(err, "error on run workflow %s", options.Workflow)
+		// Yoshi/Options can only handle strings
+		vars := make(map[string]any)
+		for k, v := range options.Vars {
+			vars[k] = v
 		}
 
-		return nil
+		return action.Run(vars)
 	})
 }
 
@@ -70,31 +73,13 @@ var pwd = (func() string {
 	return wd
 })()
 
-func listWorkflows(workflows map[string]runfile.Workflow) {
+func listActions(actions map[string]runfile.Action) {
 	tabwriter := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
-	fmt.Fprintln(tabwriter, "WORKFLOW\tDESCRIPTION")
-	for name := range workflows {
-		fmt.Fprintf(tabwriter, "%s\t%s\n", name, workflows[name].Description)
+	fmt.Fprintln(tabwriter, "ACTION\tDESCRIPTION")
+	for name := range actions {
+		fmt.Fprintf(tabwriter, "%s\t%s\n", name, actions[name].Description)
 	}
 	tabwriter.Flush()
-}
-
-func runWorkflow(workflow runfile.Workflow, scope *Scope) error {
-	for _, command := range workflow.Actions {
-		if action, ok := scope.Actions[command.Action]; ok {
-			if err := action.Run(command.Args); err != nil {
-				return errors.Wrapf(err, "error on action run %s", command.Action)
-			}
-			continue
-		}
-		if action, ok := scope.Imports[command.Action]; ok {
-			if err := action.Run(command.Args); err != nil {
-				return errors.Wrapf(err, "error on action run %s", command.Action)
-			}
-			continue
-		}
-	}
-	return nil
 }
 
 func loadScope(runfile *runfile.Runfile, path ...string) (*Scope, error) {
