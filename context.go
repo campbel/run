@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig"
@@ -166,7 +167,7 @@ func (ctx *VarContext) GetValue(args any) (any, error) {
 		if err := command.Run(); err != nil {
 			return nil, errors.Wrap(err, "failed to run shell command")
 		}
-		return buffer.String(), nil
+		return strings.TrimSpace(buffer.String()), nil
 	}
 	return ctx.Value, nil
 }
