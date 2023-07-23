@@ -1,0 +1,5 @@
+actions:
+  install:
+    desc: "Install brew"
+    cmds:
+      - echo "Installing brew..."

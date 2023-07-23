@@ -1,11 +1,17 @@
+imports:
+  go: actions/golang
+
 actions:
   run:
+    desc: "Run a go program"
     cmds:
     - go run .
   test:
+    desc: "Run all go tests"
     cmds:
     - go test ./... -cover
   build:
+    desc: "Build all go apps"
     cmds:
     - go build -o bin/ ./...
 

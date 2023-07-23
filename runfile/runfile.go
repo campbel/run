@@ -1,13 +1,14 @@
 package runfile
 
 type Runfile struct {
-	Imports   []string            `yaml:"imports"`
+	Imports   map[string]string   `yaml:"imports"`
 	Actions   map[string]Action   `yaml:"actions"`
 	Workflows map[string]Workflow `yaml:"workflows"`
 }
 
 type Action struct {
-	Commands []string `yaml:"cmds"`
+	Description string   `yaml:"desc"`
+	Commands    []string `yaml:"cmds"`
 }
 
 type Workflow struct {

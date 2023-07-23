@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"text/tabwriter"
 
 	"github.com/campbel/run/runfile"
 	"github.com/campbel/yoshi"
+	"github.com/hashicorp/go-getter"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
@@ -17,6 +19,7 @@ type Options struct {
 	Workflow string `yoshi:"WORKFLOW;The workflow to run;default"`
 	Runfile  string `yoshi:"--runfile,-f;The runfile to use;run.yaml"`
 	List     bool   `yoshi:"--list,-l;List workflows"`
+	Actions  bool   `yoshi:"--actions,-a;List actions"`
 }
 
 func main() {
@@ -26,14 +29,29 @@ func main() {
 			return errors.Wrap(err, "failed to load runfile")
 		}
 
-		if options.Workflow == "" {
-			for name := range runfile.Workflows {
-				println(name)
+		// First thing, get all imports
+		if err := fetchImports(runfile.Imports); err != nil {
+			return errors.Wrap(err, "failed to fetch imports")
+		}
+
+		// Now load all imports
+		imports, err := loadImports(runfile.Imports)
+		if err != nil {
+			return errors.Wrap(err, "failed to load imports")
+		}
+		for namespace, actionfile := range imports {
+			for name, action := range actionfile.Actions {
+				runfile.Actions[namespace+"/"+name] = action
 			}
 		}
 
 		if options.List {
 			listWorkflows(runfile.Workflows)
+			return nil
+		}
+
+		if options.Actions {
+			listActions(runfile.Actions)
 			return nil
 		}
 
@@ -50,6 +68,20 @@ func main() {
 	})
 }
 
+func loadActionFile(path string) (*runfile.Actionfile, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, errors.Wrap(err, "error on read")
+	}
+
+	var actionfile runfile.Actionfile
+	if err := yaml.Unmarshal(data, &actionfile); err != nil {
+		return nil, errors.Wrap(err, "error on unmarshal")
+	}
+
+	return &actionfile, nil
+}
+
 func loadRunfile(path string) (*runfile.Runfile, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -64,11 +96,58 @@ func loadRunfile(path string) (*runfile.Runfile, error) {
 	return &runfile, nil
 }
 
+var pwd = (func() string {
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	return wd
+})()
+
+func fetchImports(imports map[string]string) error {
+	for name, target := range imports {
+		if err := fetchImport(name, target); err != nil {
+			return errors.Wrapf(err, "error on fetch import %s", target)
+		}
+	}
+	return nil
+}
+
+func fetchImport(name, target string) error {
+	return (&getter.Client{
+		Src:  target,
+		Dst:  filepath.Join(".run", "imports", name),
+		Pwd:  pwd,
+		Mode: getter.ClientModeAny,
+	}).Get()
+}
+
+func loadImports(imports map[string]string) (map[string]*runfile.Actionfile, error) {
+	result := map[string]*runfile.Actionfile{}
+	for name := range imports {
+		actionfile, err := loadActionFile(filepath.Join(".run", "imports", name, "run.yaml"))
+		if err != nil {
+			return nil, errors.Wrapf(err, "error on load import %s", name)
+		}
+		result[name] = actionfile
+	}
+	return result, nil
+}
+
 func listWorkflows(workflows map[string]runfile.Workflow) {
 	tabwriter := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
 	fmt.Fprintln(tabwriter, "WORKFLOW\tDESCRIPTION")
 	for name := range workflows {
 		fmt.Fprintf(tabwriter, "%s\t%s\n", name, workflows[name].Description)
+	}
+	tabwriter.Flush()
+}
+
+func listActions(actions map[string]runfile.Action) {
+	tabwriter := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
+	fmt.Fprintln(tabwriter, "ACTION\tDESCRIPTION")
+	for name, action := range actions {
+		fmt.Fprintf(tabwriter, "%s\t%s\n", name, action.Description)
 	}
 	tabwriter.Flush()
 }

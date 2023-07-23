@@ -1,0 +1,8 @@
+imports:
+  brew: ../brew
+
+actions:
+  install:
+    desc: "Install go"
+    cmds:
+      - brew install go
