@@ -8,6 +8,7 @@ type Runfile struct {
 
 type Action struct {
 	Description string    `yaml:"desc"`
+	Skip        Command   `yaml:"skip"`
 	Commands    []Command `yaml:"cmds"`
 }
 

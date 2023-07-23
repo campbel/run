@@ -7,6 +7,7 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig"
+	"github.com/campbel/run/print"
 	"github.com/campbel/run/runfile"
 )
 
@@ -24,7 +25,9 @@ func NewScope() *Scope {
 
 type ActionContext struct {
 	Scope    *Scope            `json:"-" yaml:"-"`
-	Commands []*CommandContext `json:"commands" yaml:"commands,omitempty"`
+	Name     string            `json:"name" yaml:"name"`
+	Skip     *CommandContext   `json:"skip,omitempty" yaml:"skip,omitempty"`
+	Commands []*CommandContext `json:"commands,omitempty" yaml:"commands,omitempty"`
 }
 
 type CommandContext struct {
@@ -50,6 +53,19 @@ func newCommandContext(command runfile.Command) *CommandContext {
 }
 
 func (ctx *ActionContext) Run(args map[string]any) error {
+	print.Info("running action %s", ctx.Name)
+	if ctx.Skip.Shell != "" {
+		subbedCommand, err := argSub(args, ctx.Skip.Shell)
+		if err != nil {
+			return err
+		}
+		command := exec.Command("sh", "-c", subbedCommand)
+		if err := command.Run(); err == nil {
+			print.Notice("skipping action %s", ctx.Name)
+			return nil
+		}
+	}
+
 	for _, cmd := range ctx.Commands {
 		if cmd.Shell != "" {
 			subbedCommand, err := argSub(args, cmd.Shell)

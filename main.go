@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/campbel/run/runfile"
@@ -96,12 +97,14 @@ func runWorkflow(workflow runfile.Workflow, scope *Scope) error {
 	return nil
 }
 
-func loadScope(runfile *runfile.Runfile) (*Scope, error) {
+func loadScope(runfile *runfile.Runfile, path ...string) (*Scope, error) {
 	scope := NewScope()
 
 	for name, action := range runfile.Actions {
 		scope.Actions[name] = &ActionContext{
 			Scope:    scope,
+			Name:     strings.Join(append(path, name), "."),
+			Skip:     newCommandContext(action.Skip),
 			Commands: newCommandContexts(action.Commands),
 		}
 	}
@@ -111,7 +114,7 @@ func loadScope(runfile *runfile.Runfile) (*Scope, error) {
 		if err != nil {
 			return nil, errors.Wrapf(err, "error on load action file %s", namespace)
 		}
-		s, err := loadScope(runfile)
+		s, err := loadScope(runfile, append(path, namespace)...)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error on load scope %s", namespace)
 		}
