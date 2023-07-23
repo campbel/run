@@ -1,0 +1,9 @@
+imports:
+  brew: github.com/campbel/run/actions/brew
+
+actions:
+  install:
+    desc: "Install brew"
+    cmds:
+      - task: brew.install
+        args: { PACKAGE: go }

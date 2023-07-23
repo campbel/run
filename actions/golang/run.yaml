@@ -1,9 +1,8 @@
 imports:
-  brew: github.com/campbel/run/actions/brew
+  go_installer: github.com/campbel/run/actions/golang_installer
 
 actions:
   install:
     desc: "Install go"
     cmds:
-      - action: brew.install
-      - shell: echo "brew install go"
+      - action: go_installer.install
