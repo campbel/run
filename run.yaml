@@ -16,6 +16,10 @@ actions:
     - shell: go build -o bin/ ./...
 
 workflows:
+  install:
+    desc: "Install the application"
+    actions:
+      - go.install
   run:
     desc: "Run the application"
     actions: 

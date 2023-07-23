@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -29,7 +28,7 @@ func main() {
 		}
 
 		// First thing, get all imports
-		rootScope, err := loadRootScope(runfile)
+		rootScope, err := loadScope(runfile)
 		if err != nil {
 			return errors.Wrap(err, "failed to load action context")
 		}
@@ -40,7 +39,7 @@ func main() {
 		}
 
 		if options.Dump {
-			data, err := json.Marshal(rootScope)
+			data, err := yaml.Marshal(rootScope)
 			if err != nil {
 				return errors.Wrap(err, "error on marshal")
 			}
@@ -59,39 +58,6 @@ func main() {
 
 		return nil
 	})
-}
-
-func loadActionFile(imp string) (*runfile.Actionfile, error) {
-	dst := path(imp)
-	if err := fetch(imp, dst); err != nil {
-		return nil, errors.Wrapf(err, "error on fetch %s", imp)
-	}
-
-	data, err := os.ReadFile(dst + "/run.yaml")
-	if err != nil {
-		return nil, errors.Wrap(err, "error on read")
-	}
-
-	var actionfile runfile.Actionfile
-	if err := yaml.Unmarshal(data, &actionfile); err != nil {
-		return nil, errors.Wrap(err, "error on unmarshal")
-	}
-
-	return &actionfile, nil
-}
-
-func loadRunfile(path string) (*runfile.Runfile, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, errors.Wrap(err, "error on read")
-	}
-
-	var runfile runfile.Runfile
-	if err := yaml.Unmarshal(data, &runfile); err != nil {
-		return nil, errors.Wrap(err, "error on unmarshal")
-	}
-
-	return &runfile, nil
 }
 
 var pwd = (func() string {
@@ -113,50 +79,71 @@ func listWorkflows(workflows map[string]runfile.Workflow) {
 
 func runWorkflow(workflow runfile.Workflow, scope *Scope) error {
 	for _, actionName := range workflow.Actions {
-		action, ok := scope.Actions[actionName]
-		if !ok {
-			return errors.Errorf("no action by that name %s", actionName)
+		if action, ok := scope.Actions[actionName]; ok {
+			if err := action.Run(); err != nil {
+				return errors.Wrapf(err, "error on action run %s", actionName)
+			}
+			continue
 		}
-		if err := action.Run(); err != nil {
-			return errors.Wrapf(err, "error on action run %s", actionName)
+		if action, ok := scope.Imports[actionName]; ok {
+			if err := action.Run(); err != nil {
+				return errors.Wrapf(err, "error on action run %s", actionName)
+			}
+			continue
 		}
 	}
 	return nil
 }
 
-func loadRootScope(root *runfile.Runfile) (*Scope, error) {
-	rootAction := &runfile.Actionfile{
-		Imports: root.Imports,
-		Actions: root.Actions,
-	}
-	return loadScope(rootAction)
-}
-
-func loadScope(actionfile *runfile.Actionfile) (*Scope, error) {
+func loadScope(runfile *runfile.Runfile) (*Scope, error) {
 	scope := NewScope()
 
-	for name, action := range actionfile.Actions {
+	for name, action := range runfile.Actions {
 		scope.Actions[name] = &ActionContext{
 			Scope:    scope,
 			Commands: newCommandContexts(action.Commands),
 		}
 	}
 
-	for namespace, imp := range actionfile.Imports {
-		actionfile, err := loadActionFile(imp)
+	for namespace, imp := range runfile.Imports {
+		runfile, err := fetchRunfile(imp)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error on load action file %s", namespace)
 		}
-		s, err := loadScope(actionfile)
+		s, err := loadScope(runfile)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error on load scope %s", namespace)
 		}
 		for name, action := range s.Actions {
-			scope.Actions[namespace+"."+name] = action
+			scope.Imports[namespace+"."+name] = action
 		}
 	}
 
 	return scope, nil
+}
+
+func fetchRunfile(imp string) (*runfile.Runfile, error) {
+	dst := path(imp)
+	if _, err := os.Stat(dst); err != nil {
+		if err := fetch(imp, dst); err != nil {
+			return nil, errors.Wrapf(err, "error on fetch %s", imp)
+		}
+	}
+	return loadRunfile(dst + "/run.yaml")
+}
+
+func loadRunfile(path string) (*runfile.Runfile, error) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, errors.Wrap(err, "error on read")
+	}
+
+	var runfile runfile.Runfile
+	if err := yaml.Unmarshal(data, &runfile); err != nil {
+		return nil, errors.Wrap(err, "error on unmarshal")
+	}
+
+	return &runfile, nil
 }
 
 func path(imp string) string {
