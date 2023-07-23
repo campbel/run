@@ -8,7 +8,7 @@ actions:
     cmds:
       - action: pkg.install
         args:
-          URL: https://dl.google.com/go/go1.11.2.darwin-amd64.pkg
+          URL: https://go.dev/dl/go1.20.6.darwin-{{ .ARCH }}.pkg
   install:
     desc: "Install Golang with brew"
     cmds:
