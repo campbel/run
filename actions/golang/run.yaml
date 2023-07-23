@@ -1,9 +1,9 @@
 imports:
-  brew: ../brew
+  brew: github.com/campbel/run/actions/brew
 
 actions:
   install:
     desc: "Install go"
     cmds:
-      - action: brew
-      - shell: brew install go
+      - action: brew/install
+      - shell: echo "brew install go"
