@@ -2,4 +2,5 @@ actions:
   install:
     desc: "Install package with brew"
     cmds:
-      - shell: echo "brew install {{.PACKAGE}}"
+      - shell: |
+          brew install {{.PACKAGE}}
