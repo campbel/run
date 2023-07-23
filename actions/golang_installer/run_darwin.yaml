@@ -5,5 +5,5 @@ actions:
   install:
     desc: "Install brew"
     cmds:
-      - task: brew.install
+      - action: brew.install
         args: { PACKAGE: go }
