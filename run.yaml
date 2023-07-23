@@ -1,0 +1,24 @@
+actions:
+  run:
+    cmds:
+    - go run .
+  test:
+    cmds:
+    - go test ./... -cover
+  build:
+    cmds:
+    - go build -o bin/ ./...
+
+workflows:
+  run:
+    desc: "Run the application"
+    actions: 
+      - run
+  test:
+    desc: "Run the tests"
+    actions:
+      - test
+  build:
+    desc: "Build the application"
+    actions:
+      - build
