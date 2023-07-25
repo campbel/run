@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -74,8 +75,11 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		m.quitting = true
-		return m, tea.Quit
+		switch msg.String() {
+		case "ctrl+c":
+			m.quitting = true
+			return m, tea.Quit
+		}
 	case EventMsg:
 		switch msg.EventType {
 		case EventTypeOutput:
@@ -94,9 +98,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
-	default:
-		return m, nil
 	}
+	return m, nil
 }
 
 func (m Model) View() string {
@@ -113,12 +116,12 @@ func (m Model) View() string {
 	// Only show the last 5 results
 	actions := ""
 	for _, res := range m.results {
-		actions += res.String() + "\n"
+		actions += strings.TrimSpace(res.String()) + "\n"
 	}
 
 	output := ""
 	for _, out := range m.output {
-		output += out.Message
+		output += strings.TrimSpace(out.Message) + "\n"
 	}
 
 	s += lipgloss.JoinHorizontal(lipgloss.Top,
