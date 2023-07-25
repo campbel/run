@@ -21,7 +21,6 @@ type Options struct {
 	Vars    map[string]string `yoshi:"--vars,-v;The vars file to use"`
 	Runfile string            `yoshi:"--runfile,-f;The runfile to use;run.yaml"`
 	List    bool              `yoshi:"--list,-l;List actions"`
-	Dump    bool              `yoshi:"--dump,-d;Dump the runfile"`
 }
 
 func main() {
@@ -31,24 +30,14 @@ func main() {
 			return errors.Wrap(err, "failed to load runfile")
 		}
 
-		// First thing, get all imports
-		rootScope, err := loadScope(runfile)
-		if err != nil {
-			return errors.Wrap(err, "failed to load action context")
-		}
-
 		if options.List {
 			listActions(runfile.Actions)
 			return nil
 		}
 
-		if options.Dump {
-			data, err := yaml.Marshal(rootScope)
-			if err != nil {
-				return errors.Wrap(err, "error on marshal")
-			}
-			fmt.Println(string(data))
-			return nil
+		rootScope, err := loadScope(runfile)
+		if err != nil {
+			return errors.Wrap(err, "failed to load action context")
 		}
 
 		action, ok := rootScope.Actions[options.Action]
