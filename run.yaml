@@ -50,7 +50,7 @@ actions:
     deps: [convoluted_1]
     cmds:
     - shell: sleep 1 && echo "Hello from me"
-    - shell: sleep 1 && repeat 100 echo "Hello to you"
+    - shell: sleep 1 && zsh -c "repeat 100 echo 'Hello to you'"
     - action: echo
       args: { MESSAGE: "convoluted_2" }
     - shell: sleep 3 && echo "Hello from me again"
