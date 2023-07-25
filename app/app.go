@@ -18,6 +18,11 @@ var (
 
 	outputFrameStyle = lipgloss.NewStyle().
 				Align(lipgloss.Left, lipgloss.Top)
+
+	actionStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("241")).
+			Background(lipgloss.Color("236")).
+			Padding(0, 1)
 )
 
 type EventType string
@@ -53,6 +58,7 @@ func NewModel() Model {
 	s.Spinner = spinner.Dot
 	s.Style = spinnerStyle
 	return Model{
+		actions: []string{"starting..."},
 		spinner: s,
 	}
 }
@@ -94,14 +100,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	var s string
 
-	s += m.spinner.View() + " Running actions...\n\n"
-
-	if len(m.actions) > 0 {
-		s += "Current: " + m.actions[0]
-	} else {
-		s += "Starting up..."
-	}
-	s += "\n\n"
+	s += m.spinner.View() + " Running " + actionStyle.Render(m.actions[0]) + "\n\n"
 
 	output := ""
 	for _, out := range m.output {
@@ -110,5 +109,5 @@ func (m Model) View() string {
 
 	s += outputFrameStyle.MaxHeight(m.height).Render(output)
 
-	return appStyle.Height(m.height).Render(s)
+	return appStyle.Render(s)
 }
