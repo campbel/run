@@ -2,20 +2,28 @@ imports:
   go: github.com/campbel/run/actions/golang
 
 actions:
+  default:
+    cmds:
+    - shell: run --list
+
   install:
     desc: "Install Golang"
     cmds:
     - action: go.install_pkg
+  
   run:
     desc: "Run a go program"
     deps: [install]
     cmds:
+    - shell : echo "Running a go program"
     - action: go.run
+
   test:
     desc: "Run all go tests"
     deps: [install]
     cmds:
     - action: go.test
+
   build:
     desc: "Build all go apps"
     deps: [install]

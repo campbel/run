@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"text/tabwriter"
 
@@ -59,9 +60,18 @@ var pwd = (func() string {
 })()
 
 func listActions(actions map[string]runfile.Action) {
+	var actionNames []string
+	for name := range actions {
+		if name == "default" {
+			continue
+		}
+		actionNames = append(actionNames, name)
+	}
+	sort.Strings(actionNames)
+
 	tabwriter := tabwriter.NewWriter(os.Stdout, 0, 0, 1, ' ', 0)
 	fmt.Fprintln(tabwriter, "ACTION\tDESCRIPTION")
-	for name := range actions {
+	for _, name := range actionNames {
 		fmt.Fprintf(tabwriter, "%s\t%s\n", name, actions[name].Description)
 	}
 	tabwriter.Flush()
