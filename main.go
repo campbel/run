@@ -8,6 +8,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/campbel/run/print"
 	"github.com/campbel/run/runfile"
 	"github.com/campbel/yoshi"
 	"github.com/hashicorp/go-getter"
@@ -80,13 +81,7 @@ func loadScope(runfile *runfile.Runfile, path ...string) (*Scope, error) {
 	scope := NewScope()
 
 	for name, action := range runfile.Actions {
-		scope.Actions[name] = &ActionContext{
-			Scope:    scope,
-			Name:     strings.Join(append(path, name), "."),
-			Skip:     newSkipContext(action.Skip),
-			Vars:     newVarContexts(action.Vars),
-			Commands: newCommandContexts(action.Commands),
-		}
+		scope.Actions[name] = newActionContext(scope, strings.Join(append(path, name), "."), action)
 	}
 
 	for namespace, imp := range runfile.Imports {
@@ -107,11 +102,15 @@ func loadScope(runfile *runfile.Runfile, path ...string) (*Scope, error) {
 }
 
 func fetchRunfile(imp string) (*runfile.Runfile, error) {
+
 	dst := filepath.Join(pwd, ".run", "imports", imp)
 	if _, err := os.Stat(dst); err != nil {
+		print.Notice("fetching %s", imp)
 		if err := fetch(imp, dst); err != nil {
 			return nil, errors.Wrapf(err, "error on fetch %s", imp)
 		}
+	} else {
+		print.Notice("using cached %s", imp)
 	}
 	return loadRunfile(dst)
 }

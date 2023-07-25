@@ -8,13 +8,16 @@ actions:
     - action: go.install_pkg
   run:
     desc: "Run a go program"
+    deps: [install]
     cmds:
     - action: go.run
   test:
     desc: "Run all go tests"
+    deps: [install]
     cmds:
     - action: go.test
   build:
     desc: "Build all go apps"
+    deps: [install]
     cmds:
     - action: go.build

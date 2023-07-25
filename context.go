@@ -27,11 +27,23 @@ func NewScope() *Scope {
 }
 
 type ActionContext struct {
-	Scope    *Scope                 `json:"-" yaml:"-"`
-	Name     string                 `json:"name" yaml:"name"`
-	Skip     *SkipContext           `json:"skip,omitempty" yaml:"skip,omitempty"`
-	Vars     map[string]*VarContext `json:"vars,omitempty" yaml:"vars,omitempty"`
-	Commands []*CommandContext      `json:"commands,omitempty" yaml:"commands,omitempty"`
+	Scope        *Scope                 `json:"-" yaml:"-"`
+	Name         string                 `json:"name" yaml:"name"`
+	Dependencies []string               `json:"deps,omitempty" yaml:"deps,omitempty"`
+	Skip         *SkipContext           `json:"skip,omitempty" yaml:"skip,omitempty"`
+	Vars         map[string]*VarContext `json:"vars,omitempty" yaml:"vars,omitempty"`
+	Commands     []*CommandContext      `json:"commands,omitempty" yaml:"commands,omitempty"`
+}
+
+func newActionContext(scope *Scope, name string, action runfile.Action) *ActionContext {
+	return &ActionContext{
+		Scope:        scope,
+		Name:         name,
+		Dependencies: action.Dependencies,
+		Skip:         newSkipContext(action.Skip),
+		Vars:         newVarContexts(action.Vars),
+		Commands:     newCommandContexts(action.Commands),
+	}
 }
 
 type SkipContext struct {
@@ -71,6 +83,23 @@ func newCommandContext(command runfile.Command) *CommandContext {
 func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 
 	info := print.StartInfoContext()
+
+	for _, dep := range ctx.Dependencies {
+		info("running dependency %s", dep)
+		if action, exists := ctx.Scope.Actions[dep]; exists {
+			if err := action.Run(passedArgs); err != nil {
+				return err
+			}
+			continue
+		}
+		if action, exists := ctx.Scope.Imports[dep]; exists {
+			if err := action.Run(passedArgs); err != nil {
+				return err
+			}
+			continue
+		}
+		return errors.Errorf("no action with the name '%s'", dep)
+	}
 
 	// Variables cascade
 	// The defaults are input to args

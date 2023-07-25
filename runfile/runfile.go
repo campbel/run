@@ -23,10 +23,11 @@ func (r *Runfile) Merge(a *Runfile) error {
 }
 
 type Action struct {
-	Description string         `yaml:"desc"`
-	Skip        Skip           `yaml:"skip"`
-	Vars        map[string]Var `yaml:"vars"`
-	Commands    []Command      `yaml:"cmds"`
+	Description  string         `yaml:"desc"`
+	Dependencies []string       `yaml:"deps"`
+	Skip         Skip           `yaml:"skip"`
+	Vars         map[string]Var `yaml:"vars"`
+	Commands     []Command      `yaml:"cmds"`
 }
 
 type Skip struct {
