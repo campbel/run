@@ -3,12 +3,19 @@ package runner
 import (
 	"io"
 	"os"
+	"time"
 )
+
+type Event struct {
+	Duration time.Duration
+	Message  string
+}
 
 type GlobalContext struct {
 	out io.Writer
 	err io.Writer
 	in  io.Reader
+	bus chan Event
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -16,6 +23,7 @@ func NewGlobalContext() *GlobalContext {
 		out: os.Stdout,
 		err: os.Stderr,
 		in:  os.Stdin,
+		bus: make(chan Event),
 	}
 }
 
@@ -36,4 +44,12 @@ func (c *GlobalContext) WithStdin(in io.Reader) *GlobalContext {
 
 func (c *GlobalContext) Write(p []byte) (n int, err error) {
 	return c.out.Write(p)
+}
+
+func (c *GlobalContext) Emit(e Event) {
+	c.bus <- e
+}
+
+func (c *GlobalContext) Events() <-chan Event {
+	return c.bus
 }

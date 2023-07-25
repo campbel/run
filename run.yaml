@@ -29,7 +29,27 @@ actions:
     deps: [install]
     cmds:
     - action: go.build
+
   echo:
     desc: "Echo a message"
+    vars:
+      MESSAGE:
+        shell: echo "{{ default "default world" .ARGS.MESSAGE }}"
     cmds:
-    - shell: echo "Hello $MESSAGE"
+    - shell: echo "Hello {{ .VARS.MESSAGE }}"
+
+  convoluted_1:
+    desc: "A convoluted action"
+    deps: [echo]
+    cmds:
+    - shell: sleep 1 && echo "Hello $MESSAGE"
+    - shell: sleep 1 && echo "Hello $MESSAGE"
+
+  convoluted_2:
+    desc: "A convoluted action"
+    deps: [convoluted_1]
+    cmds:
+    - shell: sleep 1 && echo "Hello $MESSAGE"
+    - shell: sleep 1 && echo "Hello $MESSAGE"
+    - action: echo
+      args: { MESSAGE: "convoluted_2" }

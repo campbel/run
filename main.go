@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -9,9 +10,11 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/campbel/run/app"
 	"github.com/campbel/run/runfile"
 	"github.com/campbel/run/runner"
 	"github.com/campbel/yoshi"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/hashicorp/go-getter"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
@@ -22,6 +25,7 @@ type Options struct {
 	Vars    map[string]string `yoshi:"--vars,-v;The vars file to use"`
 	Runfile string            `yoshi:"--runfile,-f;The runfile to use;run.yaml"`
 	List    bool              `yoshi:"--list,-l;List actions"`
+	TUI     bool              `yoshi:"--tui,-t;Use the TUI"`
 }
 
 func main() {
@@ -47,7 +51,29 @@ func main() {
 			return fmt.Errorf("no action with the name '%s'", options.Action)
 		}
 
-		return action.Run(options.Vars)
+		if !options.TUI {
+			go func() {
+				for event := range global.Events() {
+					fmt.Println(event)
+				}
+			}()
+			return action.Run(options.Vars)
+		}
+
+		program := tea.NewProgram(app.NewModel())
+		go func(program *tea.Program) {
+			for event := range global.Events() {
+				program.Send(app.EventMsg{
+					Duration: event.Duration,
+					Message:  event.Message,
+				})
+			}
+			program.Quit()
+		}(program)
+		global.WithStdout(io.Discard).WithErrout(io.Discard).WithStdin(os.Stdin)
+		go action.Run(options.Vars)
+		_, err = program.Run()
+		return err
 	})
 }
 

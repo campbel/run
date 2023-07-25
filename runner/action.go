@@ -1,9 +1,9 @@
 package runner
 
 import (
-	"os"
 	"os/exec"
 	"runtime"
+	"time"
 
 	"github.com/campbel/run/runfile"
 	"github.com/pkg/errors"
@@ -32,6 +32,18 @@ func NewActionContext(global *GlobalContext, pkg *PackageContext, name string, a
 }
 
 func (ctx *ActionContext) Run(passedArgs map[string]string) error {
+
+	start := time.Now()
+	ctx.Global.Emit(Event{
+		Message: "Running action " + ctx.Name,
+	})
+
+	defer func() {
+		ctx.Global.Emit(Event{
+			Message:  "Finished action " + ctx.Name,
+			Duration: time.Since(start),
+		})
+	}()
 
 	for _, dep := range ctx.Dependencies {
 		if action, exists := ctx.Package.Actions[dep]; exists {
@@ -100,9 +112,9 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 				return err
 			}
 			command := exec.Command("sh", "-c", subbedCommand)
-			command.Stdout = os.Stdout
-			command.Stderr = os.Stderr
-			command.Stdin = os.Stdin
+			command.Stdout = ctx.Global.out
+			command.Stderr = ctx.Global.err
+			command.Stdin = ctx.Global.in
 			if err := command.Run(); err != nil {
 				return err
 			}
