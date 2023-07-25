@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -22,6 +23,11 @@ var (
 	actionStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("241")).
 			Background(lipgloss.Color("236")).
+			Padding(0, 1)
+
+	lineNumberStyle = lipgloss.NewStyle().
+			Align(lipgloss.Right, lipgloss.Top).
+			Foreground(lipgloss.Color("241")).
 			Padding(0, 1)
 )
 
@@ -47,7 +53,7 @@ func (r EventMsg) String() string {
 type Model struct {
 	spinner  spinner.Model
 	actions  []string
-	output   []EventMsg
+	output   []string
 	quitting bool
 	height   int
 	width    int
@@ -78,7 +84,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case EventMsg:
 		switch msg.EventType {
 		case EventTypeOutput:
-			m.output = append(m.output, msg)
+			m.output = append(m.output, strings.Split(strings.TrimSpace(msg.Message), "\n")...)
 		case EventTypeActionStart:
 			m.actions = append([]string{msg.Message}, m.actions...)
 		case EventTypeActionFinish:
@@ -98,16 +104,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+
+	lineCount := (m.height - 5)
+
 	var s string
 
+	// header
 	s += m.spinner.View() + " Running " + actionStyle.Render(m.actions[0]) + "\n\n"
 
+	// output
 	output := ""
-	for _, out := range m.output {
-		output += out.Message
+	start := 0
+	width := 5
+	if len(m.output) > lineCount {
+		start = len(m.output) - lineCount
 	}
-
-	s += outputFrameStyle.MaxHeight(m.height - 10).Render(output)
+	for i := start; i < len(m.output); i++ {
+		number := lineNumberStyle.Width(width + 2).Render(fmt.Sprintf("%d", i+1))
+		output += fmt.Sprintf("%s %s\n", number, m.output[i])
+	}
+	s += outputFrameStyle.MaxHeight(m.height - 3).Render(output)
 
 	return appStyle.Render(s)
 }
