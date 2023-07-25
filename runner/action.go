@@ -1,30 +1,14 @@
-package main
+package runner
 
 import (
-	"bytes"
 	"os"
 	"os/exec"
 	"runtime"
-	"strings"
-	"text/template"
 
-	"github.com/Masterminds/sprig"
 	"github.com/campbel/run/print"
 	"github.com/campbel/run/runfile"
 	"github.com/pkg/errors"
 )
-
-type Scope struct {
-	Actions map[string]*ActionContext
-	Imports map[string]*ActionContext
-}
-
-func NewScope() *Scope {
-	return &Scope{
-		Actions: make(map[string]*ActionContext),
-		Imports: make(map[string]*ActionContext),
-	}
-}
 
 type ActionContext struct {
 	Scope        *Scope                 `json:"-" yaml:"-"`
@@ -35,48 +19,14 @@ type ActionContext struct {
 	Commands     []*CommandContext      `json:"commands,omitempty" yaml:"commands,omitempty"`
 }
 
-func newActionContext(scope *Scope, name string, action runfile.Action) *ActionContext {
+func NewActionContext(scope *Scope, name string, action runfile.Action) *ActionContext {
 	return &ActionContext{
 		Scope:        scope,
 		Name:         name,
 		Dependencies: action.Dependencies,
-		Skip:         newSkipContext(action.Skip),
-		Vars:         newVarContexts(action.Vars),
-		Commands:     newCommandContexts(action.Commands),
-	}
-}
-
-type SkipContext struct {
-	Shell   string `json:"shell,omitempty" yaml:"shell,omitempty"`
-	Message string `json:"message,omitempty" yaml:"message,omitempty"`
-}
-
-func newSkipContext(skip runfile.Skip) *SkipContext {
-	return &SkipContext{
-		Shell:   skip.Shell,
-		Message: skip.Message,
-	}
-}
-
-type CommandContext struct {
-	Action string            `json:"action,omitempty" yaml:"action,omitempty"`
-	Shell  string            `json:"shell,omitempty" yaml:"shell,omitempty"`
-	Args   map[string]string `json:"args,omitempty" yaml:"args,omitempty"`
-}
-
-func newCommandContexts(commands []runfile.Command) []*CommandContext {
-	var contexts []*CommandContext
-	for _, command := range commands {
-		contexts = append(contexts, newCommandContext(command))
-	}
-	return contexts
-}
-
-func newCommandContext(command runfile.Command) *CommandContext {
-	return &CommandContext{
-		Action: command.Action,
-		Shell:  command.Shell,
-		Args:   command.Args,
+		Skip:         NewSkipContext(action.Skip),
+		Vars:         NewVarContexts(action.Vars),
+		Commands:     NewCommandContexts(action.Commands),
 	}
 }
 
@@ -177,55 +127,4 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 		}
 	}
 	return nil
-}
-
-type VarContext struct {
-	Value string `json:"value,omitempty" yaml:"value,omitempty"`
-	Shell string `json:"shell,omitempty" yaml:"shell,omitempty"`
-}
-
-func newVarContexts(vars map[string]runfile.Var) map[string]*VarContext {
-	contexts := make(map[string]*VarContext)
-	for name, varCtx := range vars {
-		contexts[name] = newVarContext(varCtx)
-	}
-	return contexts
-}
-
-func newVarContext(varCtx runfile.Var) *VarContext {
-	return &VarContext{
-		Value: varCtx.Value,
-		Shell: varCtx.Shell,
-	}
-}
-
-func (ctx *VarContext) GetValue(args any) (any, error) {
-	if ctx.Shell != "" {
-		shellCmd, error := varSub(args, ctx.Shell)
-		if error != nil {
-			return nil, errors.Wrap(error, "failed to substitute shell command")
-		}
-		command := exec.Command("sh", "-c", shellCmd)
-		var buffer bytes.Buffer
-		command.Stdout = &buffer
-		if err := command.Run(); err != nil {
-			return nil, errors.Wrap(err, "failed to run shell command")
-		}
-		return strings.TrimSpace(buffer.String()), nil
-	}
-	return ctx.Value, nil
-}
-
-func varSub(vars any, command string) (string, error) {
-	template, err := template.New("command").Funcs(sprig.FuncMap()).Parse(command)
-	if err != nil {
-		return "", err
-	}
-
-	var buffer bytes.Buffer
-	if err := template.Execute(&buffer, vars); err != nil {
-		return "", err
-	}
-
-	return buffer.String(), nil
 }

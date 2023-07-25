@@ -21,3 +21,7 @@ actions:
     deps: [install]
     cmds:
     - action: go.build
+  echo:
+    desc: "Echo a message"
+    cmds:
+    - shell: echo "Hello $MESSAGE"

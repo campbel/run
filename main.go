@@ -10,6 +10,7 @@ import (
 
 	"github.com/campbel/run/print"
 	"github.com/campbel/run/runfile"
+	"github.com/campbel/run/runner"
 	"github.com/campbel/yoshi"
 	"github.com/hashicorp/go-getter"
 	"github.com/pkg/errors"
@@ -66,11 +67,11 @@ func listActions(actions map[string]runfile.Action) {
 	tabwriter.Flush()
 }
 
-func loadScope(runfile *runfile.Runfile, path ...string) (*Scope, error) {
-	scope := NewScope()
+func loadScope(runfile *runfile.Runfile, path ...string) (*runner.Scope, error) {
+	scope := runner.NewScope()
 
 	for name, action := range runfile.Actions {
-		scope.Actions[name] = newActionContext(scope, strings.Join(append(path, name), "."), action)
+		scope.Actions[name] = runner.NewActionContext(scope, strings.Join(append(path, name), "."), action)
 	}
 
 	for namespace, imp := range runfile.Imports {
