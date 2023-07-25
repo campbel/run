@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 	"text/tabwriter"
+	"time"
 
 	"github.com/campbel/run/app"
 	"github.com/campbel/run/runfile"
@@ -62,9 +63,10 @@ func main() {
 
 		program := tea.NewProgram(app.NewModel())
 		go func(program *tea.Program) {
+			start := time.Now()
 			for event := range global.Events() {
 				program.Send(app.EventMsg{
-					Duration: event.Duration,
+					Duration: time.Since(start),
 					Message:  event.Message,
 				})
 			}

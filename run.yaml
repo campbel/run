@@ -42,14 +42,14 @@ actions:
     desc: "A convoluted action"
     deps: [echo]
     cmds:
-    - shell: sleep 1 && echo "Hello $MESSAGE"
-    - shell: sleep 1 && echo "Hello $MESSAGE"
+    - shell: sleep 1 && echo "Hello $MESSAGE 1"
+    - shell: sleep 1 && echo "Hello $MESSAGE 2"
 
   convoluted_2:
     desc: "A convoluted action"
     deps: [convoluted_1]
     cmds:
-    - shell: sleep 1 && echo "Hello $MESSAGE"
-    - shell: sleep 1 && echo "Hello $MESSAGE"
+    - shell: sleep 1 && echo "Hello from me"
+    - shell: sleep 1 && echo "Hello to you"
     - action: echo
       args: { MESSAGE: "convoluted_2" }

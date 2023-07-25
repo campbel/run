@@ -3,12 +3,10 @@ package runner
 import (
 	"io"
 	"os"
-	"time"
 )
 
 type Event struct {
-	Duration time.Duration
-	Message  string
+	Message string
 }
 
 type GlobalContext struct {

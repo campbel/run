@@ -28,7 +28,7 @@ func (r EventMsg) String() string {
 		return dotStyle.Render(strings.Repeat(".", 30))
 	}
 	return fmt.Sprintf("✓ %s %s", r.Message,
-		durationStyle.Render(r.Duration.String()))
+		durationStyle.Render(r.Duration.Round(time.Second).String()))
 }
 
 type Model struct {

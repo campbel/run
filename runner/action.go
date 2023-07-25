@@ -3,7 +3,6 @@ package runner
 import (
 	"os/exec"
 	"runtime"
-	"time"
 
 	"github.com/campbel/run/runfile"
 	"github.com/pkg/errors"
@@ -33,15 +32,9 @@ func NewActionContext(global *GlobalContext, pkg *PackageContext, name string, a
 
 func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 
-	start := time.Now()
-	ctx.Global.Emit(Event{
-		Message: "Running action " + ctx.Name,
-	})
-
 	defer func() {
 		ctx.Global.Emit(Event{
-			Message:  "Finished action " + ctx.Name,
-			Duration: time.Since(start),
+			Message: "Finished action " + ctx.Name,
 		})
 	}()
 
