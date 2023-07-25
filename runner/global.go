@@ -53,3 +53,7 @@ func (c *GlobalContext) Emit(e Event) {
 func (c *GlobalContext) Events() <-chan Event {
 	return c.bus
 }
+
+func (c *GlobalContext) Done() {
+	close(c.bus)
+}

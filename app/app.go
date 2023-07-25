@@ -72,9 +72,9 @@ func (m Model) View() string {
 	var s string
 
 	if m.quitting {
-		s += "That’s all for today!"
+		s += "Done!"
 	} else {
-		s += m.spinner.View() + " Eating food..."
+		s += m.spinner.View() + " Running actions..."
 	}
 
 	s += "\n\n"

@@ -71,7 +71,10 @@ func main() {
 			program.Quit()
 		}(program)
 		global.WithStdout(io.Discard).WithErrout(io.Discard).WithStdin(os.Stdin)
-		go action.Run(options.Vars)
+		go func() {
+			action.Run(options.Vars)
+			global.Done()
+		}()
 		_, err = program.Run()
 		return err
 	})
