@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -65,14 +64,23 @@ func main() {
 		go func(program *tea.Program) {
 			start := time.Now()
 			for event := range global.Events() {
-				program.Send(app.EventMsg{
-					Duration: time.Since(start),
-					Message:  event.Message,
-				})
+				switch event.EventType {
+				case runner.EventTypeOutput:
+					program.Send(app.EventMsg{
+						EventType: app.EventTypeOutput,
+						Message:   event.Message,
+					})
+				case runner.EventTypeActionFinish:
+					program.Send(app.EventMsg{
+						EventType: app.EventTypeActionFinish,
+						Duration:  time.Since(start),
+						Message:   event.Message,
+					})
+				}
 			}
 			program.Quit()
 		}(program)
-		global.WithStdout(io.Discard).WithErrout(io.Discard).WithStdin(os.Stdin)
+		global.WithStdout(global).WithErrout(global)
 		go func() {
 			action.Run(options.Vars)
 			global.Done()

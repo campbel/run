@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -16,17 +15,38 @@ var (
 	dotStyle      = helpStyle.Copy().UnsetMargins()
 	durationStyle = dotStyle.Copy()
 	appStyle      = lipgloss.NewStyle().Margin(1, 2, 0, 2)
+
+	actionHeaderStyle = lipgloss.NewStyle().
+				Width(25).
+				Foreground(lipgloss.Color("63"))
+
+	outputHeaderStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.Color("63"))
+
+	actionsFrameStyle = lipgloss.NewStyle().
+				Width(25).
+				Height(5).
+				Align(lipgloss.Left, lipgloss.Top)
+
+	outputFrameStyle = lipgloss.NewStyle().
+				Height(5).
+				Align(lipgloss.Left, lipgloss.Top)
+)
+
+type EventType string
+
+var (
+	EventTypeActionFinish EventType = "finish"
+	EventTypeOutput       EventType = "output"
 )
 
 type EventMsg struct {
+	EventType
 	Duration time.Duration
 	Message  string
 }
 
 func (r EventMsg) String() string {
-	if r.Duration == 0 {
-		return dotStyle.Render(strings.Repeat(".", 30))
-	}
 	return fmt.Sprintf("✓ %s %s", r.Message,
 		durationStyle.Render(r.Duration.Round(time.Second).String()))
 }
@@ -34,16 +54,16 @@ func (r EventMsg) String() string {
 type Model struct {
 	spinner  spinner.Model
 	results  []EventMsg
+	output   []EventMsg
 	quitting bool
 }
 
 func NewModel() Model {
-	const numLastResults = 5
 	s := spinner.New()
+	s.Spinner = spinner.Dot
 	s.Style = spinnerStyle
 	return Model{
 		spinner: s,
-		results: make([]EventMsg, numLastResults),
 	}
 }
 
@@ -57,7 +77,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.quitting = true
 		return m, tea.Quit
 	case EventMsg:
-		m.results = append(m.results[1:], msg)
+		switch msg.EventType {
+		case EventTypeOutput:
+			m.output = append(m.output, msg)
+			if len(m.output) > 5 {
+				m.output = m.output[1:]
+			}
+		default:
+			m.results = append(m.results, msg)
+			if len(m.results) > 5 {
+				m.results = m.results[1:]
+			}
+		}
 		return m, nil
 	case spinner.TickMsg:
 		var cmd tea.Cmd
@@ -71,25 +102,34 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	var s string
 
-	if m.quitting {
-		s += "Done!"
-	} else {
-		s += m.spinner.View() + " Running actions..."
-	}
+	s += m.spinner.View() + " Running actions...\n\n"
 
-	s += "\n\n"
+	s += lipgloss.JoinHorizontal(lipgloss.Top,
+		actionHeaderStyle.Render("ACTIONS"),
+		outputHeaderStyle.Render("OUTPUT"),
+	)
+	s += "\n"
 
+	// Only show the last 5 results
+	actions := ""
 	for _, res := range m.results {
-		s += res.String() + "\n"
+		actions += res.String() + "\n"
 	}
 
-	if !m.quitting {
-		s += helpStyle.Render("Press any key to exit")
+	output := ""
+	for _, out := range m.output {
+		output += out.Message
 	}
+
+	s += lipgloss.JoinHorizontal(lipgloss.Top,
+		actionsFrameStyle.Render(actions),
+		outputFrameStyle.Render(output),
+	)
 
 	if m.quitting {
 		s += "\n"
 	}
+	s += helpStyle.Render("Press any key to exit")
 
 	return appStyle.Render(s)
 }

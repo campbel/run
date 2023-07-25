@@ -34,7 +34,8 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 
 	defer func() {
 		ctx.Global.Emit(Event{
-			Message: "Finished action " + ctx.Name,
+			EventType: EventTypeActionFinish,
+			Message:   ctx.Name,
 		})
 	}()
 

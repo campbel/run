@@ -5,7 +5,15 @@ import (
 	"os"
 )
 
+type EventType string
+
+const (
+	EventTypeActionFinish EventType = "finish"
+	EventTypeOutput       EventType = "output"
+)
+
 type Event struct {
+	EventType
 	Message string
 }
 
@@ -41,7 +49,11 @@ func (c *GlobalContext) WithStdin(in io.Reader) *GlobalContext {
 }
 
 func (c *GlobalContext) Write(p []byte) (n int, err error) {
-	return c.out.Write(p)
+	c.bus <- Event{
+		EventType: EventTypeOutput,
+		Message:   string(p),
+	}
+	return len(p), nil
 }
 
 func (c *GlobalContext) Emit(e Event) {
