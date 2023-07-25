@@ -36,7 +36,8 @@ func main() {
 			return nil
 		}
 
-		rootScope, err := loadScope(runfile)
+		global := runner.NewGlobalContext()
+		rootScope, err := loadPackage(global, runfile)
 		if err != nil {
 			return errors.Wrap(err, "failed to load action context")
 		}
@@ -67,11 +68,11 @@ func listActions(actions map[string]runfile.Action) {
 	tabwriter.Flush()
 }
 
-func loadScope(runfile *runfile.Runfile, path ...string) (*runner.Scope, error) {
+func loadPackage(global *runner.GlobalContext, runfile *runfile.Runfile, path ...string) (*runner.PackageContext, error) {
 	scope := runner.NewScope()
 
 	for name, action := range runfile.Actions {
-		scope.Actions[name] = runner.NewActionContext(scope, strings.Join(append(path, name), "."), action)
+		scope.Actions[name] = runner.NewActionContext(global, scope, strings.Join(append(path, name), "."), action)
 	}
 
 	for namespace, imp := range runfile.Imports {
@@ -79,7 +80,7 @@ func loadScope(runfile *runfile.Runfile, path ...string) (*runner.Scope, error) 
 		if err != nil {
 			return nil, errors.Wrapf(err, "error on load action file %s", namespace)
 		}
-		s, err := loadScope(runfile, append(path, namespace)...)
+		s, err := loadPackage(global, runfile, append(path, namespace)...)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error on load scope %s", namespace)
 		}

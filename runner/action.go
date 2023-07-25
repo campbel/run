@@ -11,7 +11,8 @@ import (
 )
 
 type ActionContext struct {
-	Scope        *Scope                 `json:"-" yaml:"-"`
+	Global       *GlobalContext
+	Package      *PackageContext        `json:"-" yaml:"-"`
 	Name         string                 `json:"name" yaml:"name"`
 	Dependencies []string               `json:"deps,omitempty" yaml:"deps,omitempty"`
 	Skip         *SkipContext           `json:"skip,omitempty" yaml:"skip,omitempty"`
@@ -19,9 +20,10 @@ type ActionContext struct {
 	Commands     []*CommandContext      `json:"commands,omitempty" yaml:"commands,omitempty"`
 }
 
-func NewActionContext(scope *Scope, name string, action runfile.Action) *ActionContext {
+func NewActionContext(global *GlobalContext, pkg *PackageContext, name string, action runfile.Action) *ActionContext {
 	return &ActionContext{
-		Scope:        scope,
+		Global:       global,
+		Package:      pkg,
 		Name:         name,
 		Dependencies: action.Dependencies,
 		Skip:         NewSkipContext(action.Skip),
@@ -36,13 +38,13 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 
 	for _, dep := range ctx.Dependencies {
 		info("running dependency %s", dep)
-		if action, exists := ctx.Scope.Actions[dep]; exists {
+		if action, exists := ctx.Package.Actions[dep]; exists {
 			if err := action.Run(passedArgs); err != nil {
 				return err
 			}
 			continue
 		}
-		if action, exists := ctx.Scope.Imports[dep]; exists {
+		if action, exists := ctx.Package.Imports[dep]; exists {
 			if err := action.Run(passedArgs); err != nil {
 				return err
 			}
@@ -114,11 +116,11 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 			continue
 		}
 		if cmd.Action != "" {
-			if action, exists := ctx.Scope.Actions[cmd.Action]; exists {
+			if action, exists := ctx.Package.Actions[cmd.Action]; exists {
 				if err := action.Run(cmd.Args); err != nil {
 					return err
 				}
-			} else if action, exists := ctx.Scope.Imports[cmd.Action]; exists {
+			} else if action, exists := ctx.Package.Imports[cmd.Action]; exists {
 				if err := action.Run(cmd.Args); err != nil {
 					return err
 				}
