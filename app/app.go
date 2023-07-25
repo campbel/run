@@ -2,7 +2,6 @@ package app
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
@@ -17,20 +16,7 @@ var (
 	durationStyle = dotStyle.Copy()
 	appStyle      = lipgloss.NewStyle().Margin(1, 2, 0, 2)
 
-	actionHeaderStyle = lipgloss.NewStyle().
-				Width(25).
-				Foreground(lipgloss.Color("63"))
-
-	outputHeaderStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.Color("63"))
-
-	actionsFrameStyle = lipgloss.NewStyle().
-				Width(25).
-				Height(5).
-				Align(lipgloss.Left, lipgloss.Top)
-
 	outputFrameStyle = lipgloss.NewStyle().
-				Height(5).
 				Align(lipgloss.Left, lipgloss.Top)
 )
 
@@ -38,6 +24,7 @@ type EventType string
 
 var (
 	EventTypeActionFinish EventType = "finish"
+	EventTypeActionStart  EventType = "start"
 	EventTypeOutput       EventType = "output"
 )
 
@@ -54,9 +41,11 @@ func (r EventMsg) String() string {
 
 type Model struct {
 	spinner  spinner.Model
-	results  []EventMsg
+	actions  []string
 	output   []EventMsg
 	quitting bool
+	height   int
+	width    int
 }
 
 func NewModel() Model {
@@ -84,20 +73,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.EventType {
 		case EventTypeOutput:
 			m.output = append(m.output, msg)
-			if len(m.output) > 5 {
-				m.output = m.output[1:]
-			}
-		default:
-			m.results = append(m.results, msg)
-			if len(m.results) > 5 {
-				m.results = m.results[1:]
-			}
+		case EventTypeActionStart:
+			m.actions = append([]string{msg.Message}, m.actions...)
+		case EventTypeActionFinish:
+			m.actions = m.actions[1:]
 		}
 		return m, nil
 	case spinner.TickMsg:
 		var cmd tea.Cmd
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
+	case tea.WindowSizeMsg:
+		m.width = msg.Width
+		m.height = msg.Height
+		return m, nil
 	}
 	return m, nil
 }
@@ -107,32 +96,19 @@ func (m Model) View() string {
 
 	s += m.spinner.View() + " Running actions...\n\n"
 
-	s += lipgloss.JoinHorizontal(lipgloss.Top,
-		actionHeaderStyle.Render("ACTIONS"),
-		outputHeaderStyle.Render("OUTPUT"),
-	)
-	s += "\n"
-
-	// Only show the last 5 results
-	actions := ""
-	for _, res := range m.results {
-		actions += strings.TrimSpace(res.String()) + "\n"
+	if len(m.actions) > 0 {
+		s += "Current: " + m.actions[0]
+	} else {
+		s += "Starting up..."
 	}
+	s += "\n\n"
 
 	output := ""
 	for _, out := range m.output {
-		output += strings.TrimSpace(out.Message) + "\n"
+		output += out.Message
 	}
 
-	s += lipgloss.JoinHorizontal(lipgloss.Top,
-		actionsFrameStyle.Render(actions),
-		outputFrameStyle.Render(output),
-	)
+	s += outputFrameStyle.MaxHeight(m.height).Render(output)
 
-	if m.quitting {
-		s += "\n"
-	}
-	s += helpStyle.Render("Press any key to exit")
-
-	return appStyle.Render(s)
+	return appStyle.Height(m.height).Render(s)
 }

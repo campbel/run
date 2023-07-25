@@ -9,6 +9,7 @@ type EventType string
 
 const (
 	EventTypeActionFinish EventType = "finish"
+	EventTypeActionStart  EventType = "start"
 	EventTypeOutput       EventType = "output"
 )
 

@@ -53,3 +53,4 @@ actions:
     - shell: sleep 1 && echo "Hello to you"
     - action: echo
       args: { MESSAGE: "convoluted_2" }
+    - shell: sleep 3 && echo "Hello from me again"

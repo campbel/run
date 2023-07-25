@@ -31,7 +31,10 @@ func NewActionContext(global *GlobalContext, pkg *PackageContext, name string, a
 }
 
 func (ctx *ActionContext) Run(passedArgs map[string]string) error {
-
+	ctx.Global.Emit(Event{
+		EventType: EventTypeActionStart,
+		Message:   ctx.Name,
+	})
 	defer func() {
 		ctx.Global.Emit(Event{
 			EventType: EventTypeActionFinish,
