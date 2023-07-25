@@ -8,7 +8,6 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/campbel/run/print"
 	"github.com/campbel/run/runfile"
 	"github.com/campbel/run/runner"
 	"github.com/campbel/yoshi"
@@ -93,15 +92,11 @@ func loadPackage(global *runner.GlobalContext, runfile *runfile.Runfile, path ..
 }
 
 func fetchRunfile(imp string) (*runfile.Runfile, error) {
-
 	dst := filepath.Join(pwd, ".run", "imports", imp)
 	if _, err := os.Stat(dst); err != nil {
-		print.Notice("fetching %s", imp)
 		if err := fetch(imp, dst); err != nil {
 			return nil, errors.Wrapf(err, "error on fetch %s", imp)
 		}
-	} else {
-		print.Notice("using cached %s", imp)
 	}
 	return loadRunfile(dst)
 }

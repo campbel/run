@@ -5,7 +5,6 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/campbel/run/print"
 	"github.com/campbel/run/runfile"
 	"github.com/pkg/errors"
 )
@@ -34,10 +33,7 @@ func NewActionContext(global *GlobalContext, pkg *PackageContext, name string, a
 
 func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 
-	info := print.StartInfoContext()
-
 	for _, dep := range ctx.Dependencies {
-		info("running dependency %s", dep)
 		if action, exists := ctx.Package.Actions[dep]; exists {
 			if err := action.Run(passedArgs); err != nil {
 				return err
@@ -86,8 +82,6 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 	input["vars"] = vars
 	input["VARS"] = vars
 
-	info("running action %s", ctx.Name)
-	defer info("finished action %s", ctx.Name)
 	if ctx.Skip.Shell != "" {
 		subbedCommand, err := varSub(input, ctx.Skip.Shell)
 		if err != nil {
@@ -95,7 +89,6 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 		}
 		command := exec.Command("sh", "-c", subbedCommand)
 		if err := command.Run(); err == nil {
-			print.Notice(" - skipping - %s", ctx.Skip.Message)
 			return nil
 		}
 	}
