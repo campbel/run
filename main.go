@@ -86,12 +86,16 @@ func main() {
 			program.Quit()
 		}(program)
 		global.WithStdout(global).WithErrout(global)
+		errChan := make(chan error)
 		go func() {
-			action.Run(options.Vars)
+			errChan <- action.Run(options.Vars)
 			global.Done()
 		}()
-		_, err = program.Run()
-		return err
+		go func() {
+			_, err := program.Run()
+			errChan <- err
+		}()
+		return <-errChan
 	})
 }
 

@@ -107,7 +107,7 @@ func (m Model) View() string {
 		output += out.Message
 	}
 
-	s += outputFrameStyle.MaxHeight(m.height).Render(output)
+	s += outputFrameStyle.MaxHeight(m.height - 10).Render(output)
 
 	return appStyle.Render(s)
 }
