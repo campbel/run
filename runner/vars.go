@@ -10,8 +10,8 @@ import (
 )
 
 type VarContext struct {
-	Value string `json:"value,omitempty" yaml:"value,omitempty"`
-	Shell string `json:"shell,omitempty" yaml:"shell,omitempty"`
+	Value string
+	Shell string
 }
 
 func NewVarContexts(vars map[string]runfile.Var) map[string]*VarContext {

@@ -3,9 +3,9 @@ package runner
 import "github.com/campbel/run/runfile"
 
 type CommandContext struct {
-	Action string            `json:"action,omitempty" yaml:"action,omitempty"`
-	Shell  string            `json:"shell,omitempty" yaml:"shell,omitempty"`
-	Args   map[string]string `json:"args,omitempty" yaml:"args,omitempty"`
+	Action string
+	Shell  string
+	Args   map[string]string
 }
 
 func NewCommandContexts(commands []runfile.Command) []*CommandContext {

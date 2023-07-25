@@ -12,12 +12,12 @@ import (
 
 type ActionContext struct {
 	Global       *GlobalContext
-	Package      *PackageContext        `json:"-" yaml:"-"`
-	Name         string                 `json:"name" yaml:"name"`
-	Dependencies []string               `json:"deps,omitempty" yaml:"deps,omitempty"`
-	Skip         *SkipContext           `json:"skip,omitempty" yaml:"skip,omitempty"`
-	Vars         map[string]*VarContext `json:"vars,omitempty" yaml:"vars,omitempty"`
-	Commands     []*CommandContext      `json:"commands,omitempty" yaml:"commands,omitempty"`
+	Package      *PackageContext
+	Name         string
+	Dependencies []string
+	Skip         *SkipContext
+	Vars         map[string]*VarContext
+	Commands     []*CommandContext
 }
 
 func NewActionContext(global *GlobalContext, pkg *PackageContext, name string, action runfile.Action) *ActionContext {
