@@ -5,7 +5,7 @@ type PackageContext struct {
 	Imports map[string]*ActionContext
 }
 
-func NewScope() *PackageContext {
+func NewPackageContext() *PackageContext {
 	return &PackageContext{
 		Actions: make(map[string]*ActionContext),
 		Imports: make(map[string]*ActionContext),

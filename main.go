@@ -69,7 +69,7 @@ func listActions(actions map[string]runfile.Action) {
 }
 
 func loadPackage(global *runner.GlobalContext, runfile *runfile.Runfile, path ...string) (*runner.PackageContext, error) {
-	scope := runner.NewScope()
+	scope := runner.NewPackageContext()
 
 	for name, action := range runfile.Actions {
 		scope.Actions[name] = runner.NewActionContext(global, scope, strings.Join(append(path, name), "."), action)
