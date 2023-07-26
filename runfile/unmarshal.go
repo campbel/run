@@ -11,11 +11,11 @@ import (
 func Unmarshal(content []byte) (*Runfile, error) {
 	var a any
 	if err := yaml.Unmarshal(content, &a); err != nil {
-		return nil, errors.Wrap(err, "qqqqq unmarshal runfile")
+		return nil, errors.Wrap(err, "unmarshal runfile")
 	}
 
 	var runfile Runfile
-	return &runfile, errors.Wrap(decode(a, &runfile), "qqqqq decode runfile")
+	return &runfile, errors.Wrap(decode(a, &runfile), "decode runfile")
 }
 
 // decode uses mapstructure to decode the given any into the given runfile.
