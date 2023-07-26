@@ -53,8 +53,7 @@ func main() {
 
 		if !options.TUI {
 			go func() {
-				for event := range global.Events() {
-					fmt.Println(event)
+				for range global.Events() {
 				}
 			}()
 			return action.Run(options.Vars)
@@ -91,10 +90,7 @@ func main() {
 			errChan <- action.Run(options.Vars)
 			global.Done()
 		}()
-		go func() {
-			_, err := program.Run()
-			errChan <- err
-		}()
+		program.Run()
 		return <-errChan
 	})
 }

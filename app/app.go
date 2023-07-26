@@ -6,9 +6,12 @@ import (
 	"time"
 
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
+
+const useHighPerformanceRenderer = false
 
 var (
 	spinnerStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
@@ -29,6 +32,18 @@ var (
 			Align(lipgloss.Right, lipgloss.Top).
 			Foreground(lipgloss.Color("241")).
 			Padding(0, 1)
+
+	titleStyle = func() lipgloss.Style {
+		b := lipgloss.RoundedBorder()
+		b.Right = "├"
+		return lipgloss.NewStyle().BorderStyle(b).Padding(0, 1)
+	}()
+
+	infoStyle = func() lipgloss.Style {
+		b := lipgloss.RoundedBorder()
+		b.Left = "┤"
+		return titleStyle.Copy().BorderStyle(b)
+	}()
 )
 
 type EventType string
@@ -51,12 +66,17 @@ func (r EventMsg) String() string {
 }
 
 type Model struct {
-	spinner  spinner.Model
-	actions  []string
-	output   []string
+	actions []string
+	content string
+
+	height int
+	width  int
+
+	ready    bool
 	quitting bool
-	height   int
-	width    int
+
+	spinner  spinner.Model
+	viewport viewport.Model
 }
 
 func NewModel() Model {
@@ -74,6 +94,11 @@ func (m Model) Init() tea.Cmd {
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var (
+		cmd  tea.Cmd
+		cmds []tea.Cmd
+	)
+
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -84,7 +109,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case EventMsg:
 		switch msg.EventType {
 		case EventTypeOutput:
-			m.output = append(m.output, strings.Split(strings.TrimSpace(msg.Message), "\n")...)
+			m.content += msg.Message
+			goToBottom := m.viewport.AtBottom()
+			m.viewport.SetContent(m.content)
+			if goToBottom {
+				m.viewport.GotoBottom()
+			}
 		case EventTypeActionStart:
 			m.actions = append([]string{msg.Message}, m.actions...)
 		case EventTypeActionFinish:
@@ -96,34 +126,76 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.spinner, cmd = m.spinner.Update(msg)
 		return m, cmd
 	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
-		return m, nil
+		headerHeight := lipgloss.Height(m.headerView())
+		footerHeight := lipgloss.Height(m.footerView())
+		verticalMarginHeight := headerHeight + footerHeight
+
+		if !m.ready {
+			// Since this program is using the full size of the viewport we
+			// need to wait until we've received the window dimensions before
+			// we can initialize the viewport. The initial dimensions come in
+			// quickly, though asynchronously, which is why we wait for them
+			// here.
+			m.viewport = viewport.New(msg.Width, msg.Height-verticalMarginHeight)
+			m.viewport.YPosition = headerHeight
+			m.viewport.HighPerformanceRendering = useHighPerformanceRenderer
+			m.viewport.SetContent(m.content)
+			m.ready = true
+
+			// This is only necessary for high performance rendering, which in
+			// most cases you won't need.
+			//
+			// Render the viewport one line below the header.
+			m.viewport.YPosition = headerHeight + 1
+		} else {
+			m.viewport.Width = msg.Width
+			m.viewport.Height = msg.Height - verticalMarginHeight
+		}
+
+		if useHighPerformanceRenderer {
+			// Render (or re-render) the whole viewport. Necessary both to
+			// initialize the viewport and when the window is resized.
+			//
+			// This is needed for high-performance rendering only.
+			cmds = append(cmds, viewport.Sync(m.viewport))
+		}
+
+		// This is only necessary for high performance rendering, which in
+		// most cases you won't need.
+		//
+		// Render the viewport one line below the header.
+		m.viewport.YPosition = headerHeight + 1
 	}
-	return m, nil
+
+	// Handle keyboard and mouse events in the viewport
+	m.viewport, cmd = m.viewport.Update(msg)
+	cmds = append(cmds, cmd)
+
+	return m, tea.Batch(cmds...)
 }
 
 func (m Model) View() string {
-
-	lineCount := (m.height - 5)
-
-	var s string
-
-	// header
-	s += m.spinner.View() + " Running " + actionStyle.Render(m.actions[0]) + "\n\n"
-
-	// output
-	output := ""
-	start := 0
-	width := 5
-	if len(m.output) > lineCount {
-		start = len(m.output) - lineCount
+	if !m.ready {
+		return "\n  Initializing..."
 	}
-	for i := start; i < len(m.output); i++ {
-		number := lineNumberStyle.Width(width + 2).Render(fmt.Sprintf("%d", i+1))
-		output += fmt.Sprintf("%s %s\n", number, m.output[i])
-	}
-	s += outputFrameStyle.MaxHeight(m.height - 3).Render(output)
+	return fmt.Sprintf("%s\n%s\n%s", m.headerView(), m.viewport.View(), m.footerView())
+}
 
-	return appStyle.Render(s)
+func (m Model) headerView() string {
+	title := titleStyle.Render(m.actions[0])
+	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(title)))
+	return lipgloss.JoinHorizontal(lipgloss.Center, title, line)
+}
+
+func (m Model) footerView() string {
+	info := infoStyle.Render(fmt.Sprintf("%3.f%%", m.viewport.ScrollPercent()*100))
+	line := strings.Repeat("─", max(0, m.viewport.Width-lipgloss.Width(info)))
+	return lipgloss.JoinHorizontal(lipgloss.Center, line, info)
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
