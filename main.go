@@ -21,7 +21,6 @@ type Options struct {
 	Vars    map[string]string `yoshi:"--vars,-v;The vars file to use"`
 	Runfile string            `yoshi:"--runfile,-f;The runfile to use;run.yaml"`
 	List    bool              `yoshi:"--list,-l;List actions"`
-	TUI     bool              `yoshi:"--tui,-t;Use the TUI"`
 }
 
 func main() {
