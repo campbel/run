@@ -7,19 +7,6 @@ import (
 	"github.com/campbel/run/types"
 )
 
-type EventType string
-
-const (
-	EventTypeActionFinish EventType = "finish"
-	EventTypeActionStart  EventType = "start"
-	EventTypeOutput       EventType = "output"
-)
-
-type Event struct {
-	EventType
-	Message string
-}
-
 type GlobalContext struct {
 	out io.Writer
 	err io.Writer
