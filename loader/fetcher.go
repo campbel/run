@@ -41,7 +41,7 @@ func (g *GoGetter) Fetch(src string) (*runfile.Runfile, error) {
 	}
 
 	files := []string{"run.yaml", "run_" + runtime.GOOS + ".yaml"}
-	sharedRunfile := runfile.NewRunfile()
+	var sharedRunfile *runfile.Runfile
 	for _, file := range files {
 		filepath := filepath.Join(dst, file)
 		if _, err := os.Stat(filepath); err == nil {
@@ -49,11 +49,11 @@ func (g *GoGetter) Fetch(src string) (*runfile.Runfile, error) {
 			if err != nil {
 				return nil, errors.Wrapf(err, "error on read %s", filepath)
 			}
-			runfile, err := runfile.Unmarshal(data)
+			rf, err := runfile.Unmarshal(data)
 			if err != nil {
 				return nil, errors.Wrapf(err, "error on unmarshal %s", filepath)
 			}
-			sharedRunfile.Merge(runfile)
+			sharedRunfile = runfile.Merge(sharedRunfile, rf)
 		}
 	}
 	return sharedRunfile, nil

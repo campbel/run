@@ -12,13 +12,20 @@ func NewRunfile() *Runfile {
 	}
 }
 
-func (r *Runfile) Merge(a *Runfile) {
-	for name, action := range a.Actions {
-		r.Actions[name] = action
+func Merge(rfs ...*Runfile) *Runfile {
+	rf := NewRunfile()
+	for _, r := range rfs {
+		if r == nil {
+			continue
+		}
+		for name, action := range r.Actions {
+			rf.Actions[name] = action
+		}
+		for name, path := range r.Imports {
+			rf.Imports[name] = path
+		}
 	}
-	for name, path := range a.Imports {
-		r.Imports[name] = path
-	}
+	return rf
 }
 
 type Action struct {
