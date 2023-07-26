@@ -3,8 +3,8 @@ package app
 import (
 	"fmt"
 	"strings"
-	"time"
 
+	"github.com/campbel/run/types"
 	"github.com/charmbracelet/bubbles/spinner"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
@@ -14,24 +14,7 @@ import (
 const useHighPerformanceRenderer = false
 
 var (
-	spinnerStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
-	helpStyle     = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Margin(1, 0)
-	dotStyle      = helpStyle.Copy().UnsetMargins()
-	durationStyle = dotStyle.Copy()
-	appStyle      = lipgloss.NewStyle().Margin(1, 2, 0, 2)
-
-	outputFrameStyle = lipgloss.NewStyle().
-				Align(lipgloss.Left, lipgloss.Top)
-
-	actionStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("241")).
-			Background(lipgloss.Color("236")).
-			Padding(0, 1)
-
-	lineNumberStyle = lipgloss.NewStyle().
-			Align(lipgloss.Right, lipgloss.Top).
-			Foreground(lipgloss.Color("241")).
-			Padding(0, 1)
+	spinnerStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("63"))
 
 	titleStyle = func() lipgloss.Style {
 		b := lipgloss.RoundedBorder()
@@ -46,31 +29,9 @@ var (
 	}()
 )
 
-type EventType string
-
-var (
-	EventTypeActionFinish EventType = "finish"
-	EventTypeActionStart  EventType = "start"
-	EventTypeOutput       EventType = "output"
-)
-
-type EventMsg struct {
-	EventType
-	Duration time.Duration
-	Message  string
-}
-
-func (r EventMsg) String() string {
-	return fmt.Sprintf("✓ %s %s", r.Message,
-		durationStyle.Render(r.Duration.Round(time.Second).String()))
-}
-
 type Model struct {
 	actions []string
 	content string
-
-	height int
-	width  int
 
 	ready    bool
 	quitting bool
@@ -106,18 +67,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.quitting = true
 			return m, tea.Quit
 		}
-	case EventMsg:
+	case types.EventMsg:
 		switch msg.EventType {
-		case EventTypeOutput:
+		case types.EventTypeOutput:
 			m.content += msg.Message
 			goToBottom := m.viewport.AtBottom()
 			m.viewport.SetContent(m.content)
 			if goToBottom {
 				m.viewport.GotoBottom()
 			}
-		case EventTypeActionStart:
+		case types.EventTypeActionStart:
 			m.actions = append([]string{msg.Message}, m.actions...)
-		case EventTypeActionFinish:
+		case types.EventTypeActionFinish:
 			m.actions = m.actions[1:]
 		}
 		return m, nil

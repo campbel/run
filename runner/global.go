@@ -3,6 +3,8 @@ package runner
 import (
 	"io"
 	"os"
+
+	"github.com/campbel/run/types"
 )
 
 type EventType string
@@ -22,7 +24,7 @@ type GlobalContext struct {
 	out io.Writer
 	err io.Writer
 	in  io.Reader
-	bus chan Event
+	bus chan types.EventMsg
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -30,7 +32,7 @@ func NewGlobalContext() *GlobalContext {
 		out: os.Stdout,
 		err: os.Stderr,
 		in:  os.Stdin,
-		bus: make(chan Event),
+		bus: make(chan types.EventMsg),
 	}
 }
 
@@ -50,18 +52,18 @@ func (c *GlobalContext) WithStdin(in io.Reader) *GlobalContext {
 }
 
 func (c *GlobalContext) Write(p []byte) (n int, err error) {
-	c.bus <- Event{
-		EventType: EventTypeOutput,
+	c.bus <- types.EventMsg{
+		EventType: types.EventTypeOutput,
 		Message:   string(p),
 	}
 	return len(p), nil
 }
 
-func (c *GlobalContext) Emit(e Event) {
+func (c *GlobalContext) Emit(e types.EventMsg) {
 	c.bus <- e
 }
 
-func (c *GlobalContext) Events() <-chan Event {
+func (c *GlobalContext) Events() <-chan types.EventMsg {
 	return c.bus
 }
 

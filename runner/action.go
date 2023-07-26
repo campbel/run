@@ -5,6 +5,7 @@ import (
 	"runtime"
 
 	"github.com/campbel/run/runfile"
+	"github.com/campbel/run/types"
 	"github.com/pkg/errors"
 )
 
@@ -31,13 +32,13 @@ func NewActionContext(global *GlobalContext, pkg *PackageContext, name string, a
 }
 
 func (ctx *ActionContext) Run(passedArgs map[string]string) error {
-	ctx.Global.Emit(Event{
-		EventType: EventTypeActionStart,
+	ctx.Global.Emit(types.EventMsg{
+		EventType: types.EventTypeActionStart,
 		Message:   ctx.Name,
 	})
 	defer func() {
-		ctx.Global.Emit(Event{
-			EventType: EventTypeActionFinish,
+		ctx.Global.Emit(types.EventMsg{
+			EventType: types.EventTypeActionFinish,
 			Message:   ctx.Name,
 		})
 	}()

@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 	"text/tabwriter"
-	"time"
 
 	"github.com/campbel/run/app"
 	"github.com/campbel/run/runfile"
@@ -61,26 +60,8 @@ func main() {
 
 		program := tea.NewProgram(app.NewModel(), tea.WithAltScreen())
 		go func(program *tea.Program) {
-			start := time.Now()
 			for event := range global.Events() {
-				switch event.EventType {
-				case runner.EventTypeOutput:
-					program.Send(app.EventMsg{
-						EventType: app.EventTypeOutput,
-						Message:   event.Message,
-					})
-				case runner.EventTypeActionFinish:
-					program.Send(app.EventMsg{
-						EventType: app.EventTypeActionFinish,
-						Duration:  time.Since(start),
-						Message:   event.Message,
-					})
-				case runner.EventTypeActionStart:
-					program.Send(app.EventMsg{
-						EventType: app.EventTypeActionStart,
-						Message:   event.Message,
-					})
-				}
+				program.Send(event)
 			}
 			program.Quit()
 		}(program)
