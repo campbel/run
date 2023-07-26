@@ -4,15 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"sort"
-	"strings"
 	"text/tabwriter"
 
+	"github.com/campbel/run/loader"
 	"github.com/campbel/run/runfile"
-	"github.com/campbel/run/runner"
 	"github.com/campbel/yoshi"
-	"github.com/hashicorp/go-getter"
 	"github.com/pkg/errors"
 )
 
@@ -25,9 +22,20 @@ type Options struct {
 
 func main() {
 	yoshi.New("run").Run(func(options Options) error {
-		runfile, err := loadRunfile(options.Runfile)
+
+		runfilePath := filepath.Join(pwd, options.Runfile)
+		if _, err := os.Stat(runfilePath); err != nil {
+			return errors.Wrap(err, "failed to find runfile")
+		}
+
+		data, err := os.ReadFile(runfilePath)
 		if err != nil {
-			return errors.Wrap(err, "failed to load runfile")
+			return errors.Wrap(err, "failed to read runfile")
+		}
+
+		runfile, err := runfile.Unmarshal(data)
+		if err != nil {
+			return errors.Wrap(err, "failed to unmarshal runfile")
 		}
 
 		if options.List {
@@ -35,13 +43,9 @@ func main() {
 			return nil
 		}
 
-		global := runner.NewGlobalContext()
-		rootScope, err := loadPackage(global, runfile)
-		if err != nil {
-			return errors.Wrap(err, "failed to load action context")
-		}
+		mainPkg := loader.NewLoader(runfile, loader.NewGoGetter()).Load()
 
-		action, ok := rootScope.Actions[options.Action]
+		action, ok := mainPkg.Actions[options.Action]
 		if !ok {
 			return fmt.Errorf("no action with the name '%s'", options.Action)
 		}
@@ -74,86 +78,4 @@ func listActions(actions map[string]runfile.Action) {
 		fmt.Fprintf(tabwriter, "%s\t%s\n", name, actions[name].Description)
 	}
 	tabwriter.Flush()
-}
-
-func loadPackage(global *runner.GlobalContext, runfile *runfile.Runfile, path ...string) (*runner.PackageContext, error) {
-	scope := runner.NewPackageContext()
-
-	for name, action := range runfile.Actions {
-		scope.Actions[name] = runner.NewActionContext(global, scope, strings.Join(append(path, name), "."), action)
-	}
-
-	for namespace, imp := range runfile.Imports {
-		runfile, err := fetchRunfile(imp)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error on load action file %s", namespace)
-		}
-		s, err := loadPackage(global, runfile, append(path, namespace)...)
-		if err != nil {
-			return nil, errors.Wrapf(err, "error on load scope %s", namespace)
-		}
-		for name, action := range s.Actions {
-			scope.Imports[namespace+"."+name] = action
-		}
-	}
-
-	return scope, nil
-}
-
-func fetchRunfile(imp string) (*runfile.Runfile, error) {
-	dst := filepath.Join(pwd, ".run", "imports", imp)
-	if _, err := os.Stat(dst); err != nil {
-		if err := fetch(imp, dst); err != nil {
-			return nil, errors.Wrapf(err, "error on fetch %s", imp)
-		}
-	}
-	return loadRunfile(dst)
-}
-
-func loadRunfile(path string) (*runfile.Runfile, error) {
-	// If the path has no extension, we assume its a directory and load both
-	// the common file and the os specific file
-	if filepath.Ext(path) == "" {
-		var sharedRunfile *runfile.Runfile
-		files := []string{"run.yaml", "run_" + runtime.GOOS + ".yaml"}
-		for _, file := range files {
-			filepath := filepath.Join(path, file)
-			if _, err := os.Stat(filepath); err == nil {
-				rf, err := readRunfile(filepath)
-				if err != nil {
-					return nil, errors.Wrapf(err, "error on read %s", filepath)
-				}
-				sharedRunfile = runfile.Merge(sharedRunfile, rf)
-			}
-		}
-		return sharedRunfile, nil
-	}
-
-	return readRunfile(path)
-}
-
-func readRunfile(filepath string) (*runfile.Runfile, error) {
-	data, err := os.ReadFile(filepath)
-	if err != nil {
-		return nil, errors.Wrap(err, "error on read")
-	}
-
-	runfile, err := runfile.Unmarshal(data)
-	if err != nil {
-		return nil, errors.Wrap(err, "error on unmarshal")
-	}
-
-	return runfile, nil
-}
-
-func fetch(src, dst string) error {
-	if err := (&getter.Client{
-		Src:  src,
-		Dst:  dst,
-		Pwd:  pwd,
-		Mode: getter.ClientModeAny,
-	}).Get(); err != nil {
-		return err
-	}
-	return nil
 }

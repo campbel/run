@@ -1,4 +1,3 @@
-// BEGIN: jh3d8f4g9d3h
 package loader
 
 import (

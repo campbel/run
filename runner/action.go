@@ -3,6 +3,7 @@ package runner
 import (
 	"os/exec"
 	"runtime"
+	"strings"
 
 	"github.com/campbel/run/runfile"
 	"github.com/pkg/errors"
@@ -32,19 +33,25 @@ func NewActionContext(global *GlobalContext, pkg *PackageContext, name string, a
 
 func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 	for _, dep := range ctx.Dependencies {
-		if action, exists := ctx.Package.Actions[dep]; exists {
-			if err := action.Run(passedArgs); err != nil {
-				return err
+		if strings.Contains(dep, ".") {
+			parts := strings.SplitN(dep, ".", 2)
+			pkg, action := parts[0], parts[1]
+			if packageCtx, exists := ctx.Package.Imports[pkg]; exists {
+				if err := packageCtx.Run(action, passedArgs); err != nil {
+					return errors.Wrap(err, "error running action")
+				}
+			} else {
+				return errors.Errorf("no package with the name '%s'", pkg)
 			}
-			continue
-		}
-		if action, exists := ctx.Package.Imports[dep]; exists {
-			if err := action.Run(passedArgs); err != nil {
-				return err
+		} else {
+			if action, exists := ctx.Package.Actions[dep]; exists {
+				if err := action.Run(passedArgs); err != nil {
+					return err
+				}
+			} else {
+				return errors.Errorf("no action with the name '%s'", dep)
 			}
-			continue
 		}
-		return errors.Errorf("no action with the name '%s'", dep)
 	}
 
 	// Variables cascade
@@ -107,16 +114,25 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 			continue
 		}
 		if cmd.Action != "" {
-			if action, exists := ctx.Package.Actions[cmd.Action]; exists {
-				if err := action.Run(cmd.Args); err != nil {
-					return err
+			if strings.Contains(cmd.Action, ".") {
+				parts := strings.SplitN(cmd.Action, ".", 2)
+				pkg, action := parts[0], parts[1]
+				if packageCtx, exists := ctx.Package.Imports[pkg]; exists {
+					if err := packageCtx.Run(action, cmd.Args); err != nil {
+						return errors.Wrap(err, "error running action")
+					}
+				} else {
+					return errors.Errorf("no package with the name '%s'", pkg)
 				}
-			} else if action, exists := ctx.Package.Imports[cmd.Action]; exists {
-				if err := action.Run(cmd.Args); err != nil {
-					return err
+			} else {
+				if action, exists := ctx.Package.Actions[cmd.Action]; exists {
+					if err := action.Run(cmd.Args); err != nil {
+						return err
+					}
+				} else {
+					return errors.Errorf("no action with the name '%s'", cmd.Action)
 				}
 			}
-			continue
 		}
 	}
 	return nil
