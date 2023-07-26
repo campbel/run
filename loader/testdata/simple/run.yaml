@@ -1,0 +1,4 @@
+actions:
+  test:
+    commands:
+      - shell: echo "hello world"
