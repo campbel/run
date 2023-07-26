@@ -6,8 +6,7 @@ import (
 )
 
 type Loader struct {
-	main        *runfile.Runfile
-	mainContext *runner.PackageContext
+	main *runfile.Runfile
 
 	packages        map[string]*runfile.Runfile
 	packagesContext map[string]*runner.PackageContext
@@ -35,6 +34,10 @@ func (l *Loader) Load() *runner.PackageContext {
 
 func (l *Loader) loadPackageCtx(global *runner.GlobalContext, rf *runfile.Runfile) *runner.PackageContext {
 	pkg := runner.NewPackageContext()
+
+	if rf == nil {
+		return pkg
+	}
 
 	for name, action := range rf.Actions {
 		pkg.Actions[name] = runner.NewActionContext(global, pkg, name, action)

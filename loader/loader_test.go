@@ -22,6 +22,14 @@ func TestLoader_Load(t *testing.T) {
 			"pkg1": "github.com/pkg1",
 			"pkg2": "github.com/pkg2",
 		},
+		Actions: map[string]runfile.Action{
+			"action1": {
+				Dependencies: []string{"pkg1.action1"},
+			},
+			"action2": {
+				Dependencies: []string{"pkg2.action2"},
+			},
+		},
 	}
 	pkg1 := &runfile.Runfile{
 		Imports: map[string]string{
