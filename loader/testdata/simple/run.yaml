@@ -1,4 +1,4 @@
 actions:
   test:
-    commands:
+    cmds:
       - shell: echo "hello world"
