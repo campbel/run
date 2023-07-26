@@ -16,7 +16,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/hashicorp/go-getter"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v3"
 )
 
 type Options struct {
@@ -166,12 +165,12 @@ func readRunfile(filepath string) (*runfile.Runfile, error) {
 		return nil, errors.Wrap(err, "error on read")
 	}
 
-	var runfile runfile.Runfile
-	if err := yaml.Unmarshal(data, &runfile); err != nil {
+	runfile, err := runfile.Unmarshal(data)
+	if err != nil {
 		return nil, errors.Wrap(err, "error on unmarshal")
 	}
 
-	return &runfile, nil
+	return runfile, nil
 }
 
 func fetch(src, dst string) error {

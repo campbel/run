@@ -4,7 +4,7 @@ imports:
 actions:
   default:
     cmds:
-    - shell: run --list
+    - run --list
 
   install:
     desc: "Install Golang"
@@ -15,7 +15,7 @@ actions:
     desc: "Run a go program"
     deps: [install]
     cmds:
-    - shell : echo "Running a go program"
+    - echo "Running a go program"
     - action: go.run
 
   test:
@@ -33,24 +33,23 @@ actions:
   echo:
     desc: "Echo a message"
     vars:
-      MESSAGE:
-        shell: echo "{{ default "default world" .ARGS.MESSAGE }}"
+      MESSAGE: echo "{{ default "default world" .ARGS.MESSAGE }}"
     cmds:
-    - shell: echo "Hello {{ .VARS.MESSAGE }}"
+    - echo "Hello {{ .VARS.MESSAGE }}"
 
   convoluted_1:
     desc: "A convoluted action"
     deps: [echo]
     cmds:
-    - shell: sleep 1 && echo "Hello $MESSAGE 1"
-    - shell: sleep 1 && echo "Hello $MESSAGE 2"
+    - sleep 1 && echo "Hello $MESSAGE 1"
+    - sleep 1 && echo "Hello $MESSAGE 2"
 
   convoluted_2:
     desc: "A convoluted action"
     deps: [convoluted_1]
     cmds:
-    - shell: sleep 1 && echo "Hello from me"
-    - shell: sleep 1 && zsh -c "repeat 100 echo 'Hello to you'"
+    - sleep 1 && echo "Hello from me"
+    - sleep 1 && zsh -c "repeat 10 echo 'Hello to you'"
     - action: echo
       args: { MESSAGE: "convoluted_2" }
-    - shell: sleep 3 && echo "Hello from me again"
+    - sleep 1 && echo "Hello from me again"

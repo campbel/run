@@ -1,8 +1,8 @@
 package runfile
 
 type Runfile struct {
-	Imports map[string]string `yaml:"imports"`
-	Actions map[string]Action `yaml:"actions"`
+	Imports map[string]string `yaml:"imports" mapstructure:"imports"`
+	Actions map[string]Action `yaml:"actions" mapstructure:"actions"`
 }
 
 func NewRunfile() *Runfile {
@@ -23,22 +23,22 @@ func (r *Runfile) Merge(a *Runfile) error {
 }
 
 type Action struct {
-	Description  string         `yaml:"desc"`
-	Dependencies []string       `yaml:"deps"`
-	Skip         Skip           `yaml:"skip"`
-	Vars         map[string]Var `yaml:"vars"`
-	Commands     []Command      `yaml:"cmds"`
+	Description  string         `yaml:"desc" mapstructure:"desc"`
+	Dependencies []string       `yaml:"deps" mapstructure:"deps"`
+	Skip         Skip           `yaml:"skip" mapstructure:"skip"`
+	Vars         map[string]Var `yaml:"vars" mapstructure:"vars"`
+	Commands     []Command      `yaml:"cmds" mapstructure:"cmds"`
 }
 
 type Skip struct {
-	Shell   string `yaml:"shell"`
-	Message string `yaml:"msg"`
+	Shell   string `yaml:"shell" mapstructure:"shell"`
+	Message string `yaml:"msg" mapstructure:"msg"`
 }
 
 type Command struct {
-	Shell  string            `yaml:"shell"`
-	Action string            `yaml:"action"`
-	Args   map[string]string `yaml:"args"`
+	Shell  string            `yaml:"shell" mapstructure:"shell"`
+	Action string            `yaml:"action" mapstructure:"action"`
+	Args   map[string]string `yaml:"args" mapstructure:"args"`
 }
 
 type Var struct {
