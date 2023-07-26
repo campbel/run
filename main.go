@@ -9,11 +9,9 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/campbel/run/app"
 	"github.com/campbel/run/runfile"
 	"github.com/campbel/run/runner"
 	"github.com/campbel/yoshi"
-	tea "github.com/charmbracelet/bubbletea"
 	"github.com/hashicorp/go-getter"
 	"github.com/pkg/errors"
 )
@@ -49,29 +47,7 @@ func main() {
 			return fmt.Errorf("no action with the name '%s'", options.Action)
 		}
 
-		if !options.TUI {
-			go func() {
-				for range global.Events() {
-				}
-			}()
-			return action.Run(options.Vars)
-		}
-
-		program := tea.NewProgram(app.NewModel(), tea.WithAltScreen())
-		go func(program *tea.Program) {
-			for event := range global.Events() {
-				program.Send(event)
-			}
-			program.Quit()
-		}(program)
-		global.WithStdout(global).WithErrout(global)
-		errChan := make(chan error)
-		go func() {
-			errChan <- action.Run(options.Vars)
-			global.Done()
-		}()
-		program.Run()
-		return <-errChan
+		return action.Run(options.Vars)
 	})
 }
 
