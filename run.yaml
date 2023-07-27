@@ -1,5 +1,6 @@
 imports:
   go: github.com/campbel/run/actions/golang
+  scripts: github.com/campbel/run/actions/scripts
 
 actions:
   default:
@@ -41,7 +42,7 @@ actions:
     desc: "A convoluted action"
     deps: [echo]
     cmds:
-    - sleep 1 && echo "Hello $MESSAGE 1"
+    - task: scripts.python
     - sleep 1 && echo "Hello $MESSAGE 2"
 
   convoluted_2:
