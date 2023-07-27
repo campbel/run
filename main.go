@@ -14,10 +14,11 @@ import (
 )
 
 type Options struct {
-	Action  string            `yoshi:"ACTION;The action to run;default"`
-	Vars    map[string]string `yoshi:"--vars,-v;The vars file to use"`
-	Runfile string            `yoshi:"--runfile,-f;The runfile to use;run.yaml"`
-	List    bool              `yoshi:"--list,-l;List actions"`
+	Action   string            `yoshi:"ACTION;The action to run;default"`
+	Vars     map[string]string `yoshi:"--vars,-v;The vars file to use"`
+	Runfile  string            `yoshi:"--runfile,-f;The runfile to use;run.yaml"`
+	List     bool              `yoshi:"--list,-l;List actions"`
+	Download bool              `yoshi:"--download,-d;Force download dependencies"`
 }
 
 func main() {
@@ -43,7 +44,7 @@ func main() {
 			return nil
 		}
 
-		mainPkg := loader.NewLoader(runfile, loader.NewGoGetter()).Load()
+		mainPkg := loader.NewLoader(runfile, loader.NewGoGetter(options.Download)).Load()
 
 		action, ok := mainPkg.Actions[options.Action]
 		if !ok {

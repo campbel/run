@@ -16,23 +16,25 @@ type Fetcher interface {
 }
 
 type GoGetter struct {
-	client       *getter.Client
-	readFile     func(string) ([]byte, error)
-	filepathGlob func(string) ([]string, error)
-	pwd          string
+	client        *getter.Client
+	readFile      func(string) ([]byte, error)
+	filepathGlob  func(string) ([]string, error)
+	pwd           string
+	forceDownload bool
 }
 
-func NewGoGetter() *GoGetter {
+func NewGoGetter(forceDownload bool) *GoGetter {
 	return &GoGetter{
-		client:       &getter.Client{},
-		readFile:     os.ReadFile,
-		filepathGlob: filepath.Glob,
+		client:        &getter.Client{},
+		readFile:      os.ReadFile,
+		filepathGlob:  filepath.Glob,
+		forceDownload: forceDownload,
 	}
 }
 
 func (g *GoGetter) Fetch(src string) (*runfile.Runfile, error) {
 	dst := g.path(src)
-	if _, err := os.Stat(dst); err != nil {
+	if _, err := os.Stat(dst); err != nil || g.forceDownload {
 		if err := (&getter.Client{
 			Src:  src,
 			Dst:  g.path(src),
