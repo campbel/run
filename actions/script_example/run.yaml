@@ -1,0 +1,5 @@
+actions:
+  python:
+    desc: "Run a python script"
+    cmds:
+      - python3 {{ .PKG_DIR }}/example.py
