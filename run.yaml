@@ -38,19 +38,20 @@ actions:
     cmds:
     - echo "Hello {{ .VARS.MESSAGE }}"
 
-  convoluted_1:
+  scripts:
     desc: "A convoluted action"
-    # deps: [echo]
+    deps: [echo]
     cmds:
     - action: scripts.python
-    # - sleep 1 && echo "Hello $MESSAGE 2"
+    - action: scripts.ruby
+    - action: scripts.go
 
-  convoluted_2:
+  stuff:
     desc: "A convoluted action"
-    deps: [convoluted_1]
+    deps: [scripts]
     cmds:
     - sleep 1 && echo "Hello from me"
     - sleep 1 && zsh -c "repeat 10 echo 'Hello to you'"
     - action: echo
-      args: { MESSAGE: "convoluted_2" }
+      args: { MESSAGE: "stuff" }
     - sleep 1 && echo "Hello from me again"

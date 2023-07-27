@@ -1,1 +1,1 @@
-print("Hello, from Ruby!")
+puts("Hello, from Ruby!")
