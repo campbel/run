@@ -2,5 +2,12 @@ actions:
   python:
     desc: "Run a python script"
     cmds:
-      - echo "Trying to run python from {{ .PKG_DIR }}"
       - python3 {{ .PKG_DIR }}/example.py
+  ruby:
+    desc: "Run a ruby script"
+    cmds:
+      - ruby {{ .PKG_DIR }}/example.rb
+  go:
+    desc: "Run a go script"
+    cmds:
+      - go run {{ .PKG_DIR }}/example.go
