@@ -3,4 +3,4 @@ actions:
     desc: "Run the app"
     cmds:
     # We have to run the go app from the package directory
-    - pushd {{ .PKG_DIR }}; go run main.go; popd
+    - pushd {{ .PKG_DIR }} > /dev/null; go run main.go; popd > /dev/null
