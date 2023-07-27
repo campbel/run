@@ -40,10 +40,10 @@ actions:
 
   convoluted_1:
     desc: "A convoluted action"
-    deps: [echo]
+    # deps: [echo]
     cmds:
-    - task: scripts.python
-    - sleep 1 && echo "Hello $MESSAGE 2"
+    - action: scripts.python
+    # - sleep 1 && echo "Hello $MESSAGE 2"
 
   convoluted_2:
     desc: "A convoluted action"

@@ -55,7 +55,7 @@ func (g *GoGetter) Fetch(src string) (*runfile.Runfile, error) {
 		}
 	}
 
-	sharedRunfile := runfile.NewRunfile().WithDir(dst)
+	var sharedRunfile *runfile.Runfile
 	for _, filepath := range filepaths {
 		if _, err := os.Stat(filepath); err == nil {
 			data, err := g.readFile(filepath)
@@ -69,7 +69,7 @@ func (g *GoGetter) Fetch(src string) (*runfile.Runfile, error) {
 			sharedRunfile = runfile.Merge(sharedRunfile, rf)
 		}
 	}
-	return sharedRunfile, nil
+	return sharedRunfile.WithDir(dst), nil
 }
 
 func (g *GoGetter) path(imp string) string {
