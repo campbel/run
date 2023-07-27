@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/campbel/run/runfile"
 	"github.com/hashicorp/go-getter"
@@ -40,10 +41,20 @@ func (g *GoGetter) Fetch(src string) (*runfile.Runfile, error) {
 		}
 	}
 
-	files := []string{"run.yaml", "run_" + runtime.GOOS + ".yaml"}
-	var sharedRunfile *runfile.Runfile
+	var filepaths []string
+	files, err := filepath.Glob(filepath.Join(dst, "*.yaml"))
+	if err != nil {
+		return nil, err
+	}
+
 	for _, file := range files {
-		filepath := filepath.Join(dst, file)
+		if strings.HasSuffix(file, "_"+runtime.GOOS+".yaml") || strings.HasSuffix(file, "run.yaml") {
+			filepaths = append(filepaths, file)
+		}
+	}
+
+	var sharedRunfile *runfile.Runfile
+	for _, filepath := range filepaths {
 		if _, err := os.Stat(filepath); err == nil {
 			data, err := g.readFile(filepath)
 			if err != nil {
