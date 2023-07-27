@@ -12,18 +12,16 @@ import (
 type ActionContext struct {
 	Global       *GlobalContext
 	Package      *PackageContext
-	Name         string
 	Dependencies []string
 	Skip         *SkipContext
 	Vars         map[string]*VarContext
 	Commands     []*CommandContext
 }
 
-func NewActionContext(global *GlobalContext, pkg *PackageContext, name string, action runfile.Action) *ActionContext {
+func NewActionContext(global *GlobalContext, pkg *PackageContext, action runfile.Action) *ActionContext {
 	actionContext := &ActionContext{
 		Global:       global,
 		Package:      pkg,
-		Name:         name,
 		Dependencies: action.Dependencies,
 		Skip:         NewSkipContext(action.Skip),
 		Vars:         NewVarContexts(action.Vars),

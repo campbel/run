@@ -40,7 +40,7 @@ func (l *Loader) loadPackageCtx(global *runner.GlobalContext, rf *runfile.Runfil
 	}
 
 	for name, action := range rf.Actions {
-		pkg.Actions[name] = runner.NewActionContext(global, pkg, name, action)
+		pkg.Actions[name] = runner.NewActionContext(global, pkg, action)
 	}
 
 	for name, uri := range rf.Imports {
