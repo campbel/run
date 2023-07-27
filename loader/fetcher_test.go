@@ -1,6 +1,7 @@
 package loader
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -72,6 +73,17 @@ actions:
 		gg.pwd = t.TempDir()
 
 		_, err := gg.Fetch("github.com/campbel/run/does/not/exist")
+		assert.Error(t, err)
+	})
+
+	t.Run("returns error when runfile is not found", func(t *testing.T) {
+		gg := NewGoGetter()
+		gg.pwd = t.TempDir()
+		gg.filepathGlob = func(string) ([]string, error) {
+			return nil, errors.New("error")
+		}
+
+		_, err := gg.Fetch("github.com/campbel/run/loader/testdata/simple")
 		assert.Error(t, err)
 	})
 

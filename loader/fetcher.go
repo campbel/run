@@ -16,15 +16,17 @@ type Fetcher interface {
 }
 
 type GoGetter struct {
-	client   *getter.Client
-	readFile func(string) ([]byte, error)
-	pwd      string
+	client       *getter.Client
+	readFile     func(string) ([]byte, error)
+	filepathGlob func(string) ([]string, error)
+	pwd          string
 }
 
 func NewGoGetter() *GoGetter {
 	return &GoGetter{
-		client:   &getter.Client{},
-		readFile: os.ReadFile,
+		client:       &getter.Client{},
+		readFile:     os.ReadFile,
+		filepathGlob: filepath.Glob,
 	}
 }
 
@@ -42,7 +44,7 @@ func (g *GoGetter) Fetch(src string) (*runfile.Runfile, error) {
 	}
 
 	var filepaths []string
-	files, err := filepath.Glob(filepath.Join(dst, "*.yaml"))
+	files, err := g.filepathGlob(filepath.Join(dst, "*.yaml"))
 	if err != nil {
 		return nil, err
 	}
