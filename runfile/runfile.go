@@ -1,6 +1,7 @@
 package runfile
 
 type Runfile struct {
+	dir     string
 	Imports map[string]string `yaml:"imports" mapstructure:"imports"`
 	Actions map[string]Action `yaml:"actions" mapstructure:"actions"`
 }
@@ -10,6 +11,15 @@ func NewRunfile() *Runfile {
 		Imports: make(map[string]string),
 		Actions: make(map[string]Action),
 	}
+}
+
+func (r *Runfile) WithDir(dir string) *Runfile {
+	r.dir = dir
+	return r
+}
+
+func (r *Runfile) Dir() string {
+	return r.dir
 }
 
 func Merge(rfs ...*Runfile) *Runfile {

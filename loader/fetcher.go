@@ -55,7 +55,7 @@ func (g *GoGetter) Fetch(src string) (*runfile.Runfile, error) {
 		}
 	}
 
-	var sharedRunfile *runfile.Runfile
+	sharedRunfile := runfile.NewRunfile().WithDir(dst)
 	for _, filepath := range filepaths {
 		if _, err := os.Stat(filepath); err == nil {
 			data, err := g.readFile(filepath)

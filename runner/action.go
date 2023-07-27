@@ -59,10 +59,12 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 	// The defaults are input to args
 	// The defaults and args are input to vars
 	input := map[string]any{
-		"os":   runtime.GOOS,
-		"OS":   runtime.GOOS,
-		"arch": runtime.GOARCH,
-		"ARCH": runtime.GOARCH,
+		"os":      runtime.GOOS,
+		"OS":      runtime.GOOS,
+		"arch":    runtime.GOARCH,
+		"ARCH":    runtime.GOARCH,
+		"pkg_dir": ctx.Package.Dir,
+		"PKG_DIR": ctx.Package.Dir,
 	}
 
 	args := make(map[string]any)

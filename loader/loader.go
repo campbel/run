@@ -33,7 +33,7 @@ func (l *Loader) Load() *runner.PackageContext {
 }
 
 func (l *Loader) loadPackageCtx(global *runner.GlobalContext, rf *runfile.Runfile) *runner.PackageContext {
-	pkg := runner.NewPackageContext(global)
+	pkg := runner.NewPackageContext(global, rf.Dir())
 
 	if rf == nil {
 		return pkg

@@ -4,13 +4,15 @@ import "github.com/pkg/errors"
 
 type PackageContext struct {
 	Global  *GlobalContext
+	Dir     string
 	Actions map[string]*ActionContext
 	Imports map[string]*PackageContext
 }
 
-func NewPackageContext(global *GlobalContext) *PackageContext {
+func NewPackageContext(global *GlobalContext, dir string) *PackageContext {
 	return &PackageContext{
 		Global:  global,
+		Dir:     dir,
 		Actions: make(map[string]*ActionContext),
 		Imports: make(map[string]*PackageContext),
 	}
