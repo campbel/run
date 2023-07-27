@@ -26,6 +26,11 @@ func TestGoGetter_Fetch(t *testing.T) {
 						{Shell: "echo \"hello world\""},
 					},
 				},
+				"test-os": {
+					Commands: []runfile.Command{
+						{Shell: "echo \"hello " + runtime.GOOS + "\""},
+					},
+				},
 			},
 		}
 		assert.Equal(t, expected, rf)
