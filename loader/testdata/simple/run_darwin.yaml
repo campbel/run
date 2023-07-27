@@ -1,0 +1,4 @@
+actions:
+  test-os:
+    cmds:
+      - shell: echo "hello darwin"
