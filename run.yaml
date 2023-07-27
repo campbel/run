@@ -1,5 +1,6 @@
 imports:
   go: github.com/campbel/run/actions/golang
+  go_app: github.com/campbel/run/actions/go_app
   scripts: github.com/campbel/run/actions/scripts
 
 actions:
@@ -45,6 +46,7 @@ actions:
     - action: scripts.python
     - action: scripts.ruby
     - action: scripts.go
+    - action: go_app
 
   stuff:
     desc: "A convoluted action"

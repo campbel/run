@@ -1,0 +1,5 @@
+actions:
+  run:
+    desc: "Run the app"
+    cmds:
+    - go run {{ .PKG_DIR }}/main.go
