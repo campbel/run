@@ -46,7 +46,7 @@ actions:
     - action: scripts.python
     - action: scripts.ruby
     - action: scripts.go
-    - action: go_app
+    - action: go_app.run
 
   stuff:
     desc: "A convoluted action"
