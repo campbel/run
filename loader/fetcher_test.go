@@ -13,7 +13,7 @@ import (
 
 func TestGoGetter_Fetch(t *testing.T) {
 	t.Run("fetches runfile", func(t *testing.T) {
-		gg := NewGoGetter()
+		gg := NewGoGetter(false)
 		gg.pwd = t.TempDir()
 
 		rf, err := gg.Fetch("github.com/campbel/run/loader/testdata/simple")
@@ -34,11 +34,12 @@ func TestGoGetter_Fetch(t *testing.T) {
 				},
 			},
 		}
+		expected.WithDir(filepath.Join(gg.pwd, ".run", "imports", "github.com/campbel/run/loader/testdata/simple"))
 		assert.Equal(t, expected, rf)
 	})
 
 	t.Run("fetches platform specific runfile", func(t *testing.T) {
-		gg := NewGoGetter()
+		gg := NewGoGetter(false)
 		gg.pwd = t.TempDir()
 
 		err := os.MkdirAll(filepath.Join(gg.pwd, ".run", "imports", "github.com/campbel/run/loader/testdata/simple"), 0755)
@@ -65,11 +66,12 @@ actions:
 				},
 			},
 		}
+		expected.WithDir(filepath.Join(gg.pwd, ".run", "imports", "github.com/campbel/run/loader/testdata/simple"))
 		assert.Equal(t, expected, rf)
 	})
 
 	t.Run("returns error when runfile is not found", func(t *testing.T) {
-		gg := NewGoGetter()
+		gg := NewGoGetter(false)
 		gg.pwd = t.TempDir()
 
 		_, err := gg.Fetch("github.com/campbel/run/does/not/exist")
@@ -77,7 +79,7 @@ actions:
 	})
 
 	t.Run("returns error when runfile is not found", func(t *testing.T) {
-		gg := NewGoGetter()
+		gg := NewGoGetter(false)
 		gg.pwd = t.TempDir()
 		gg.filepathGlob = func(string) ([]string, error) {
 			return nil, errors.New("error")
@@ -88,7 +90,7 @@ actions:
 	})
 
 	t.Run("invalid yaml error", func(t *testing.T) {
-		gg := NewGoGetter()
+		gg := NewGoGetter(false)
 		gg.pwd = t.TempDir()
 
 		err := os.MkdirAll(filepath.Join(gg.pwd, ".run", "imports", "github.com/campbel/run/loader/testdata/simple"), 0755)
@@ -103,7 +105,7 @@ actions:
 	})
 
 	t.Run("invalid yaml error", func(t *testing.T) {
-		gg := NewGoGetter()
+		gg := NewGoGetter(false)
 		gg.readFile = func(string) ([]byte, error) {
 			return nil, os.ErrNotExist
 		}

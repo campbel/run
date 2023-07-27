@@ -19,6 +19,9 @@ func (r *Runfile) WithDir(dir string) *Runfile {
 }
 
 func (r *Runfile) Dir() string {
+	if r == nil {
+		return ""
+	}
 	return r.dir
 }
 
