@@ -17,7 +17,7 @@ func NewPackageContext(global *GlobalContext, rf *runfile.Runfile) *PackageConte
 	return &PackageContext{
 		Global:  global,
 		Dir:     rf.Dir(),
-		env:     rf.Env,
+		env:     rf.Env(),
 		Actions: make(map[string]*ActionContext),
 		Imports: make(map[string]*PackageContext),
 	}

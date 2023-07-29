@@ -28,7 +28,6 @@ func (l *Loader) Load() *runner.PackageContext {
 	for _, pkg := range l.main.Imports {
 		l.loadPackage(pkg)
 	}
-
 	return l.loadPackageCtx(runner.NewGlobalContext(), l.main)
 }
 

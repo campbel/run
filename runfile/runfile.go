@@ -2,7 +2,7 @@ package runfile
 
 type Runfile struct {
 	dir     string
-	Env     map[string]string `yaml:"env" mapstructure:"env"`
+	env     map[string]string `yaml:"env" mapstructure:"env"`
 	Imports map[string]string `yaml:"imports" mapstructure:"imports"`
 	Actions map[string]Action `yaml:"actions" mapstructure:"actions"`
 }
@@ -24,6 +24,13 @@ func (r *Runfile) Dir() string {
 		return ""
 	}
 	return r.dir
+}
+
+func (r *Runfile) Env() map[string]string {
+	if r == nil {
+		return make(map[string]string)
+	}
+	return r.env
 }
 
 func Merge(rfs ...*Runfile) *Runfile {
