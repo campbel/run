@@ -2,6 +2,7 @@ package runfile
 
 type Runfile struct {
 	dir     string
+	Env     map[string]string `yaml:"env" mapstructure:"env"`
 	Imports map[string]string `yaml:"imports" mapstructure:"imports"`
 	Actions map[string]Action `yaml:"actions" mapstructure:"actions"`
 }
@@ -42,11 +43,12 @@ func Merge(rfs ...*Runfile) *Runfile {
 }
 
 type Action struct {
-	Description  string         `yaml:"desc" mapstructure:"desc"`
-	Dependencies []string       `yaml:"deps" mapstructure:"deps"`
-	Skip         Skip           `yaml:"skip" mapstructure:"skip"`
-	Vars         map[string]Var `yaml:"vars" mapstructure:"vars"`
-	Commands     []Command      `yaml:"cmds" mapstructure:"cmds"`
+	Description  string            `yaml:"desc" mapstructure:"desc"`
+	Dependencies []string          `yaml:"deps" mapstructure:"deps"`
+	Skip         Skip              `yaml:"skip" mapstructure:"skip"`
+	Vars         map[string]Var    `yaml:"vars" mapstructure:"vars"`
+	Env          map[string]string `yaml:"env"  mapstructure:"env"`
+	Commands     []Command         `yaml:"cmds" mapstructure:"cmds"`
 }
 
 type Skip struct {

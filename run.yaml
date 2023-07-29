@@ -3,6 +3,10 @@ imports:
   go_app: github.com/campbel/run/actions/go_app
   scripts: github.com/campbel/run/actions/scripts
 
+env:
+  MESSAGE: "PKG MESSAGE"
+  PKG_MESSAGE: "PKG MESSAGE"
+
 actions:
   default:
     cmds:
@@ -51,9 +55,20 @@ actions:
   stuff:
     desc: "A convoluted action"
     deps: [scripts]
+    env:
+      MESSAGE: "ACTION MESSAGE"
     cmds:
     - sleep 1 && echo "Hello from me"
     - sleep 1 && zsh -c "repeat 10 echo 'Hello to you'"
     - action: echo
       args: { MESSAGE: "stuff" }
     - sleep 1 && echo "Hello from me again"
+    - sleep 1 && echo "Hello $MESSAGE"
+  
+  env:
+    desc: "Print the environment"
+    env:
+      MESSAGE: "ACTION MESSAGE"
+      ACTION_MESSAGE: "ACTION MESSAGE"
+    cmds:
+    - echo "$MESSAGE, $ACTION_MESSAGE, $PKG_MESSAGE"

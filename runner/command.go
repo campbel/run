@@ -41,6 +41,7 @@ func (cmd *CommandContext) Run(input map[string]any) error {
 			return err
 		}
 		command := exec.Command("sh", "-c", subbedCommand)
+		command.Env = commandEnv(cmd.actionContext.Env())
 		command.Stdout = cmd.actionContext.Global.out
 		command.Stderr = cmd.actionContext.Global.err
 		command.Stdin = cmd.actionContext.Global.in
@@ -71,4 +72,12 @@ func (cmd *CommandContext) Run(input map[string]any) error {
 		}
 	}
 	return nil
+}
+
+func commandEnv(env map[string]string) []string {
+	var envs []string
+	for key, value := range env {
+		envs = append(envs, key+"="+value)
+	}
+	return envs
 }

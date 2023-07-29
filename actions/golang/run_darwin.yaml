@@ -5,9 +5,9 @@ imports:
 actions:
   install_pkg:
     desc: "Install Golang from pkg"
-    # skip:
-    #   shell: go version
-    #   msg: "Golang is already installed"
+    skip:
+      shell: go version
+      msg: "Golang is already installed"
     cmds:
       - action: pkg.install
         args:

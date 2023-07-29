@@ -15,6 +15,7 @@ type ActionContext struct {
 	Dependencies []string
 	Skip         *SkipContext
 	Vars         map[string]*VarContext
+	env          map[string]string
 	Commands     []*CommandContext
 }
 
@@ -23,10 +24,11 @@ func NewActionContext(global *GlobalContext, pkg *PackageContext, action runfile
 		Global:       global,
 		Package:      pkg,
 		Dependencies: action.Dependencies,
-		Skip:         NewSkipContext(action.Skip),
-		Vars:         NewVarContexts(action.Vars),
+		env:          action.Env,
 	}
 
+	actionContext.Skip = NewSkipContext(actionContext, action.Skip)
+	actionContext.Vars = NewVarContexts(actionContext, action.Vars)
 	actionContext.Commands = NewCommandContexts(actionContext, action.Commands)
 
 	return actionContext
@@ -96,6 +98,7 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 			return err
 		}
 		command := exec.Command("sh", "-c", subbedCommand)
+		command.Env = commandEnv(ctx.Env())
 		if err := command.Run(); err == nil {
 			return nil
 		}
@@ -107,4 +110,15 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 		}
 	}
 	return nil
+}
+
+func (ctx *ActionContext) Env() map[string]string {
+	merged := make(map[string]string)
+	for name, value := range ctx.Package.Env() {
+		merged[name] = value
+	}
+	for name, value := range ctx.env {
+		merged[name] = value
+	}
+	return merged
 }

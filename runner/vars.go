@@ -10,22 +10,24 @@ import (
 )
 
 type VarContext struct {
-	Value string
-	Shell string
+	actionContext *ActionContext
+	Value         string
+	Shell         string
 }
 
-func NewVarContexts(vars map[string]runfile.Var) map[string]*VarContext {
+func NewVarContexts(actionContext *ActionContext, vars map[string]runfile.Var) map[string]*VarContext {
 	contexts := make(map[string]*VarContext)
 	for name, varCtx := range vars {
-		contexts[name] = NewVarContext(varCtx)
+		contexts[name] = NewVarContext(actionContext, varCtx)
 	}
 	return contexts
 }
 
-func NewVarContext(varCtx runfile.Var) *VarContext {
+func NewVarContext(actionContex *ActionContext, varCtx runfile.Var) *VarContext {
 	return &VarContext{
-		Value: varCtx.Value,
-		Shell: varCtx.Shell,
+		actionContext: actionContex,
+		Value:         varCtx.Value,
+		Shell:         varCtx.Shell,
 	}
 }
 
@@ -36,6 +38,7 @@ func (ctx *VarContext) GetValue(args any) (any, error) {
 			return nil, errors.Wrap(error, "failed to substitute shell command")
 		}
 		command := exec.Command("sh", "-c", shellCmd)
+		command.Env = commandEnv(ctx.actionContext.Env())
 		var buffer bytes.Buffer
 		command.Stdout = &buffer
 		if err := command.Run(); err != nil {
