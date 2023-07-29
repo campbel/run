@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"os/exec"
 	"runtime"
 	"strings"
 
@@ -92,16 +91,8 @@ func (ctx *ActionContext) Run(passedArgs map[string]string) error {
 	input["vars"] = vars
 	input["VARS"] = vars
 
-	if ctx.Skip.Shell != "" {
-		subbedCommand, err := varSub(input, ctx.Skip.Shell)
-		if err != nil {
-			return err
-		}
-		command := exec.Command("sh", "-c", subbedCommand)
-		command.Env = commandEnv(ctx.Env())
-		if err := command.Run(); err == nil {
-			return nil
-		}
+	if skip, err := ctx.Skip.Run(input); skip || err != nil {
+		return err
 	}
 
 	for _, cmd := range ctx.Commands {

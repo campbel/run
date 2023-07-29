@@ -1,6 +1,10 @@
 package runner
 
-import "github.com/campbel/run/runfile"
+import (
+	"os/exec"
+
+	"github.com/campbel/run/runfile"
+)
 
 type SkipContext struct {
 	actionContext *ActionContext
@@ -14,4 +18,17 @@ func NewSkipContext(actionContext *ActionContext, skip runfile.Skip) *SkipContex
 		Shell:         skip.Shell,
 		Message:       skip.Message,
 	}
+}
+
+func (ctx *SkipContext) Run(vars any) (bool, error) {
+	if ctx.Shell != "" {
+		subbedCommand, err := varSub(vars, ctx.Shell)
+		if err != nil {
+			return false, err
+		}
+		command := exec.Command("sh", "-c", subbedCommand)
+		command.Env = commandEnv(ctx.actionContext.Env())
+		return command.Run() == nil, nil
+	}
+	return false, nil
 }
